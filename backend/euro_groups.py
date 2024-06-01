@@ -53,10 +53,6 @@ def get_teams_info():
         group_name = group['tournament']['name']
         for row in group.get('rows', []):
             team_name = row['team']['name']
-            # points = row['points']
-            # wins = row['points']
-            # losses = row['losses'] te dane do dynamicznej bazy danych
-            # draws = row['draws']
             fifa_points = get_team_points(team_name)
             all_groups.append({'group' : group_name, 'team': team_name, 'fifa rating' : fifa_points})
 

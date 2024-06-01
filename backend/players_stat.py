@@ -1,20 +1,41 @@
 import requests
 from bs4 import BeautifulSoup
-from lxml import html
 
-
-
-def get_player_rating(player_url):
+def get_player_info(player_url):
     response = requests.get(player_url)
     if response.status_code == 200:
-        tree = html.fromstring(response.content)
-        # Użycie XPath do znalezienia ratingu zawodnika
-        rating = tree.xpath('/html/body/div[1]/main/div[2]/div/div/div[2]/div[1]/div[2]/div/div/span/div/span')
-        if rating:
-            return rating[0].strip()
-    return None
+        soup = BeautifulSoup(response.content, 'html.parser')
 
-def get_players_href(team, tab):
+        #znalezienie nazwy
+        name_h2 = soup.find('h2', class_='Text gcxwef')
+
+        # Znalezienie wzrostu zawodnika
+        height_label = soup.find('div', string='Wzrost')
+        height = None
+        if height_label:
+            height_div = height_label.find_next_sibling('div', class_='Text hnfikr')
+            height = height_div.get_text(strip=True) if height_div else None
+
+
+
+        #liga rozgrywkowa
+        league_a = soup.find('a', href=lambda x: x and '/turniej/pilka-nozna/' in x)
+        league = league_a.get_text(strip=True) if league_a else None
+
+        #znalezienie ratingu zawodnika
+
+        rating_url = "https://www.sofascore.com/api/v1/player/1019322/unique-tournament/35/season/52608/statistics/overall"
+        response = requests.get(rating_url)
+        if response.status_code == 200:
+            data = response.json()
+            player_rating = data['statistics']['rating']
+            goals = data['statistics']['goals']
+            assists = data['statistics']['assists']
+            #scrappuja sie losowe wartosci lol
+    return name_h2.get_text(strip=True), player_rating, height,  league, goals, assists
+
+
+def get_players_info(team, tab):
     url = f"https://www.sofascore.com/pl/druzyna/pilka-nozna/{team}/{tab}#tab:squad"
     response = requests.get(url)
     if response.status_code == 200:
@@ -25,23 +46,22 @@ def get_players_href(team, tab):
 
         for link in players_links:
             href = link['href']
-            if '/pl/zawodnik/' in href:
+            if '/pl/zawodnik/' in href and "https://www.sofascore.com" + href not in hrefs:
                 hrefs.append("https://www.sofascore.com" + href)
 
         for href in hrefs:
-            rating = get_player_rating(href)
-            print(f"URL: {href}, Rating: {rating}")
+            name, rating, height, league, goals, assists = get_player_info(href)
+            print(f"name: {name}, rating: {rating}, height: {height}, liga: {league}, goals: {goals}, assists: {assists}")
 
     else:
         print(f"Nie znaleziono danych dla drużyny: {team}")
 
 # Wywołanie funkcji dla różnych drużyn
-# narazie cos rating nie dziala
-get_players_href("germany", 4711)
+get_players_info("germany", 4711)
 print("--------------------------------------------")
-get_players_href("hungary", 4709)
+get_players_info("hungary", 4709)
 print("--------------------------------------------")
-get_players_href("scotland", 4695)
+get_players_info("scotland", 4695)
 print("--------------------------------------------")
-get_players_href("switzerland", 4699)
+get_players_info("switzerland", 4699)
 print("--------------------------------------------")
