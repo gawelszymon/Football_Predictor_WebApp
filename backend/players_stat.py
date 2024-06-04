@@ -1,13 +1,28 @@
 import requests
 from bs4 import BeautifulSoup
+import pandas as pd
 
+def get_league_rating(league, country):
+    country_name = country.lower()
+    league_url = "https://www.sofascore.com/api/v1/rankings/season/2024/type/1"
+    response = requests.get(league_url)
+    league_rating = None
+    if response.status_code == 200:
+        data = response.json()
+        for ranking in data['rankings']:
+            if ranking['uniqueTournament']['name'] == league and ranking['uniqueTournament']['category']['name'].lower() == country_name:
+                league_rating = ranking['points']
+    return league_rating
+
+#Funkcja która scrappuje dane jednego zawodnika
 def get_player_info(player_url):
     response = requests.get(player_url)
     if response.status_code == 200:
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        #znalezienie nazwy
+        #znalezienie imienia i nazwiska
         name_h2 = soup.find('h2', class_='Text gcxwef')
+        name = name_h2.get_text(strip=True)
 
         # Znalezienie wzrostu zawodnika
         height_label = soup.find('div', string='Wzrost')
@@ -16,25 +31,27 @@ def get_player_info(player_url):
             height_div = height_label.find_next_sibling('div', class_='Text hnfikr')
             height = height_div.get_text(strip=True) if height_div else None
 
-
+        #pozycja zawodnika
+        position_label = soup.find('div', string='Pozycja')
+        position = None
+        if position_label:
+            position_div = position_label.find_next_sibling('div', class_='Text hnfikr')
+            position = position_div.get_text(strip=True) if position_div else None
 
         #liga rozgrywkowa
         league_a = soup.find('a', href=lambda x: x and '/turniej/pilka-nozna/' in x)
         league = league_a.get_text(strip=True) if league_a else None
 
-        #znalezienie ratingu zawodnika
+        #kraj ligi rozgrywkowej
+        country_element = soup.find('a', href=lambda x: x and '/pl/pilka-nozna/' in x)
+        if country_element:
+            href = country_element['href']
+            country_name = href.split('/')[-1]
 
-        rating_url = "https://www.sofascore.com/api/v1/player/1019322/unique-tournament/35/season/52608/statistics/overall"
-        response = requests.get(rating_url)
-        if response.status_code == 200:
-            data = response.json()
-            player_rating = data['statistics']['rating']
-            goals = data['statistics']['goals']
-            assists = data['statistics']['assists']
-            #scrappuja sie losowe wartosci lol
-    return name_h2.get_text(strip=True), player_rating, height,  league, goals, assists
+    return name, height,  league, country_name, position
 
 
+# Funkcja iterująca po wszystkich zawodnikach drużyny i zbierająca ich wszystkie informacje
 def get_players_info(team, tab):
     url = f"https://www.sofascore.com/pl/druzyna/pilka-nozna/{team}/{tab}#tab:squad"
     response = requests.get(url)
@@ -50,18 +67,20 @@ def get_players_info(team, tab):
                 hrefs.append("https://www.sofascore.com" + href)
 
         for href in hrefs:
-            name, rating, height, league, goals, assists = get_player_info(href)
-            print(f"name: {name}, rating: {rating}, height: {height}, liga: {league}, goals: {goals}, assists: {assists}")
+            name, height, league, league_country, position = get_player_info(href)
+            print(f"name: {name},  height: {height}, liga: {league}, team: {team},"
+                  f" league country: {league_country},league rating: {get_league_rating(league,league_country)}, position: {position}")
 
     else:
         print(f"Nie znaleziono danych dla drużyny: {team}")
 
-# Wywołanie funkcji dla różnych drużyn
-get_players_info("germany", 4711)
-print("--------------------------------------------")
-get_players_info("hungary", 4709)
-print("--------------------------------------------")
-get_players_info("scotland", 4695)
-print("--------------------------------------------")
+# # Wywołanie funkcji dla różnych drużyn
+# get_players_info("germany", 4711)
+# print("--------------------------------------------")
+# get_players_info("poland", 4703)
+# print("--------------------------------------------")
+# get_players_info("scotland", 4695)
+# print("--------------------------------------------")
 get_players_info("switzerland", 4699)
-print("--------------------------------------------")
+# print("--------------------------------------------")
+# print(get_league_rating("Campionato Sammarinese", "San Marino"))
