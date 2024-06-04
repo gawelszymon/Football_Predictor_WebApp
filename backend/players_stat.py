@@ -77,10 +77,10 @@ def get_players_info(team, tab):
 # # Wywołanie funkcji dla różnych drużyn
 # get_players_info("germany", 4711)
 # print("--------------------------------------------")
-# get_players_info("poland", 4703)
+get_players_info("poland", 4703)
 # print("--------------------------------------------")
 # get_players_info("scotland", 4695)
 # print("--------------------------------------------")
-get_players_info("switzerland", 4699)
+# get_players_info("switzerland", 4699)
 # print("--------------------------------------------")
 # print(get_league_rating("Campionato Sammarinese", "San Marino"))
