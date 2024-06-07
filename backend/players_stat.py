@@ -21,21 +21,24 @@ def get_player_info(player_url):
         soup = BeautifulSoup(response.content, 'html.parser')
 
         #znalezienie imienia i nazwiska
-        name_h2 = soup.find('h2', class_='Text gcxwef')
+        name_h2 = soup.find('h2', class_='Text kNUoYk')
         name = name_h2.get_text(strip=True)
 
-        # Znalezienie wzrostu zawodnika
-        height_label = soup.find('div', string='Wzrost')
+        # znalezienie danych zawodnika:
+        elements = soup.find_all('div', class_='Text beCNLk')
         height = None
-        if height_label:
-            height_div = height_label.find_next_sibling('div', class_='Text hnfikr')
-            height = height_div.get_text(strip=True) if height_div else None
+        age = None
+        for element in elements:
+            if 'cm' in element.text:
+                height = element.text
+            elif 'lat' in element.text:
+                age = element.text
 
         #pozycja zawodnika
         position_label = soup.find('div', string='Pozycja')
         position = None
         if position_label:
-            position_div = position_label.find_next_sibling('div', class_='Text hnfikr')
+            position_div = position_label.find_next_sibling('div', class_='Text beCNLk')
             position = position_div.get_text(strip=True) if position_div else None
 
         #liga rozgrywkowa
@@ -48,7 +51,12 @@ def get_player_info(player_url):
             href = country_element['href']
             country_name = href.split('/')[-1]
 
-    return name, height,  league, country_name, position
+
+
+
+
+
+    return name, height, age, league, country_name, position
 
 
 # Funkcja iterująca po wszystkich zawodnikach drużyny i zbierająca ich wszystkie informacje
@@ -67,8 +75,8 @@ def get_players_info(team, tab):
                 hrefs.append("https://www.sofascore.com" + href)
 
         for href in hrefs:
-            name, height, league, league_country, position = get_player_info(href)
-            print(f"name: {name},  height: {height}, liga: {league}, team: {team},"
+            name, height, age, league, league_country, position = get_player_info(href)
+            print(f"name: {name},  height: {height}, age: {age}, liga: {league}, team: {team},"
                   f" league country: {league_country},league rating: {get_league_rating(league,league_country)}, position: {position}")
 
     else:
@@ -77,10 +85,11 @@ def get_players_info(team, tab):
 # # Wywołanie funkcji dla różnych drużyn
 # get_players_info("germany", 4711)
 # print("--------------------------------------------")
-get_players_info("poland", 4703)
+# get_players_info("poland", 4703)
 # print("--------------------------------------------")
 # get_players_info("scotland", 4695)
 # print("--------------------------------------------")
-# get_players_info("switzerland", 4699)
+get_players_info("switzerland", 4699)
 # print("--------------------------------------------")
 # print(get_league_rating("Campionato Sammarinese", "San Marino"))
+# print(get_player_info("https://www.sofascore.com/pl/zawodnik/marko-arnautovic/21927"))
