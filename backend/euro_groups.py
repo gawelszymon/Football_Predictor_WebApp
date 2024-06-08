@@ -1,5 +1,7 @@
 import requests
 import pandas as pd
+import json
+
 
 def get_countries_rating():
     url = "https://www.sofascore.com/api/v1/rankings/type/2"
@@ -24,20 +26,20 @@ def get_team_points(name):
 
 # Tutaj bocik scrappuje info ktore pozniej bedziemy dodawac do bazy danych
 def get_teams_info():
-    payload = {}
     url = "https://www.sofascore.com/api/v1/unique-tournament/1/season/56953/standings/total"
     response = requests.get(url)
     data = response.json()
     standings = data.get('standings', [])
     all_groups = []
+
     for group in standings:
         group_name = group['tournament']['name']
         for row in group.get('rows', []):
             team_name = row['team']['name']
-            fifa_points = get_team_points(team_name)
-            all_groups.append({'group' : group_name, 'team': team_name, 'fifa rating' : fifa_points})
+            all_groups.append({'group': group_name, 'team': team_name})
 
-    df_all_groups = pd.DataFrame(all_groups)
-    print(df_all_groups)
+    # Convert the list of dictionaries to JSON format
+    return json.dumps(all_groups, ensure_ascii=False, indent=4)
 
-get_teams_info()
+teams = get_teams_info()
+print(teams)
