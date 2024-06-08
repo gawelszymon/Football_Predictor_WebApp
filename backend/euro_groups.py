@@ -1,5 +1,4 @@
 import requests
-import pandas as pd
 
 def get_countries_rating():
     url = "https://www.sofascore.com/api/v1/rankings/type/2"
