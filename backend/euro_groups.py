@@ -1,7 +1,5 @@
 import requests
 import json
-
-
 def get_countries_rating():
     url = "https://www.sofascore.com/api/v1/rankings/type/2"
     response = requests.get(url)

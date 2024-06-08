@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Match Predictor. EURO 2024 EDYTION</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Football Match Predictor. EURO 2024 EDITION</h1>
+        <form id="predictionForm">
+            <label for="team1">Nazwa drużyny 1:</label>
+            <select id="team1" name="team1" required>
+            </select>
+            
+            <label for="team2">Nazwa drużyny 2:</label>
+            <select id="team2" name="team2" required>
+            </select>
+            
+            <button type="submit">Przewiduj wynik</button>
+        </form>
+        <div id="result" class="result"></div>
+        
+        <div class="groups">
+            <div class="group">
+                <h2>Group A</h2>
+                <div class="flags">
+                    <img src="flags/germany.png" alt="Germany">
+                    <img src="flags/scotland.png" alt="Scotland">
+                    <img src="flags/hungary.png" alt="Hungary">
+                    <img src="flags/switzerland.png" alt="Switzerland">
+                </div>
+            </div>
+            <div class="group">
+                <h2>Group B</h2>
+                <div class="flags">
+                    <img src="flags/spain.png" alt="Spain">
+                    <img src="flags/croatia.png" alt="Croatia">
+                    <img src="flags/italy.png" alt="Italy">
+                    <img src="flags/albania.png" alt="Albania">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
