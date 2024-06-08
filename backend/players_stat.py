@@ -1,6 +1,5 @@
 import requests
 from bs4 import BeautifulSoup
-import pandas as pd
 
 def get_league_rating(league, country):
     country_name = country.lower()
@@ -14,7 +13,9 @@ def get_league_rating(league, country):
                 league_rating = ranking['points']
     return league_rating
 
-#Funkcja która scrappuje dane jednego zawodnika
+
+
+#Funkcja, która scrappuje dane jednego zawodnika
 def get_player_info(player_url):
     response = requests.get(player_url)
     if response.status_code == 200:
@@ -51,10 +52,8 @@ def get_player_info(player_url):
             href = country_element['href']
             country_name = href.split('/')[-1]
 
-
-
-
-
+        rating_element = soup.find('span', class_='Text ietnEf')
+        print(rating_element)
 
     return name, height, age, league, country_name, position
 
@@ -81,13 +80,12 @@ def get_players_info(team, tab):
 
     else:
         print(f"Nie znaleziono danych dla drużyny: {team}")
-
 # # Wywołanie funkcji dla różnych drużyn
 # get_players_info("germany", 4711)
 # print("--------------------------------------------")
 # get_players_info("poland", 4703)
 # print("--------------------------------------------")
-get_players_info("scotland", 4695)
+# get_players_info("scotland", 4695)
 # print("--------------------------------------------")
 # get_players_info("switzerland", 4699)
 # print("----------------------------sofa----------------")
