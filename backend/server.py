@@ -1,12 +1,14 @@
-from flask import Flask
+from flask import Flask, jsonify
+from flask_cors import CORS
+from euro_groups import get_teams_info
 
 app = Flask(__name__)
+CORS(app)
 
-#Members API Route
+@app.route('/euro_groups', methods=['GET'])
+def euro_groups():
+    data = get_teams_info()
+    return jsonify(data)
 
-@app.route("/members")
-def members():
-    return {"members": ["Member1", "Member2", "Member3"]}
-
-if __name__ == "__main__":
-    app.run(debug=True)
+if __name__ == '__main__':
+    app.run(host='127.0.0.1', port=5000, debug=True)
