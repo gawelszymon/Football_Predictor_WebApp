@@ -52,8 +52,6 @@ def get_player_info(player_url):
             href = country_element['href']
             country_name = href.split('/')[-1]
 
-        rating_element = soup.find('span', class_='Text ietnEf')
-        print(rating_element)
 
     return name, height, age, league, country_name, position
 
