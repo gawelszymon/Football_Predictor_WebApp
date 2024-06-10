@@ -1,0 +1,232 @@
+[
+    {
+        "value": 100000.0,
+        "date": "18 mar 2008",
+        "club": "Znicz Pruszków"
+    },
+    {
+        "value": 500000.0,
+        "date": "19 maj 2008",
+        "club": "Znicz Pruszków"
+    },
+    {
+        "value": 800000.0,
+        "date": "5 wrz 2008",
+        "club": "Lech Poznań"
+    },
+    {
+        "value": 1650000.0,
+        "date": "30 gru 2008",
+        "club": "Lech Poznań"
+    },
+    {
+        "value": 3000000.0,
+        "date": "4 lip 2009",
+        "club": "Lech Poznań"
+    },
+    {
+        "value": 3600000.0,
+        "date": "17 mar 2010",
+        "club": "Lech Poznań"
+    },
+    {
+        "value": 4500000.0,
+        "date": "18 maj 2010",
+        "club": "Lech Poznań"
+    },
+    {
+        "value": 6000000.0,
+        "date": "16 lip 2010",
+        "club": "Borussia Dortmund"
+    },
+    {
+        "value": 6000000.0,
+        "date": "12 sty 2011",
+        "club": "Borussia Dortmund"
+    },
+    {
+        "value": 7000000.0,
+        "date": "29 cze 2011",
+        "club": "Borussia Dortmund"
+    },
+    {
+        "value": 12000000.0,
+        "date": "23 sty 2012",
+        "club": "Borussia Dortmund"
+    },
+    {
+        "value": 15000000.0,
+        "date": "5 mar 2012",
+        "club": "Borussia Dortmund"
+    },
+    {
+        "value": 20000000.0,
+        "date": "29 cze 2012",
+        "club": "Borussia Dortmund"
+    },
+    {
+        "value": 25000000.0,
+        "date": "26 paź 2012",
+        "club": "Borussia Dortmund"
+    },
+    {
+        "value": 28000000.0,
+        "date": "13 sty 2013",
+        "club": "Borussia Dortmund"
+    },
+    {
+        "value": 39000000.0,
+        "date": "30 cze 2013",
+        "club": "Borussia Dortmund"
+    },
+    {
+        "value": 50000000.0,
+        "date": "12 lut 2014",
+        "club": "Borussia Dortmund"
+    },
+    {
+        "value": 50000000.0,
+        "date": "10 lip 2014",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 50000000.0,
+        "date": "4 lut 2015",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 50000000.0,
+        "date": "1 lip 2015",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 70000000.0,
+        "date": "16 paź 2015",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 70000000.0,
+        "date": "15 lut 2016",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 75000000.0,
+        "date": "1 cze 2016",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 75000000.0,
+        "date": "22 lip 2016",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 80000000.0,
+        "date": "7 lut 2017",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 80000000.0,
+        "date": "19 cze 2017",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 80000000.0,
+        "date": "28 gru 2017",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 90000000.0,
+        "date": "4 kwi 2018",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 90000000.0,
+        "date": "5 cze 2018",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 85000000.0,
+        "date": "16 lip 2018",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 80000000.0,
+        "date": "22 paź 2018",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 70000000.0,
+        "date": "18 gru 2018",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 65000000.0,
+        "date": "5 cze 2019",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 70000000.0,
+        "date": "17 gru 2019",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 56000000.0,
+        "date": "8 kwi 2020",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 60000000.0,
+        "date": "16 wrz 2020",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 60000000.0,
+        "date": "10 lut 2021",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 60000000.0,
+        "date": "31 maj 2021",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 50000000.0,
+        "date": "22 gru 2021",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 45000000.0,
+        "date": "9 cze 2022",
+        "club": "Bayern Monachium"
+    },
+    {
+        "value": 45000000.0,
+        "date": "7 lis 2022",
+        "club": "FC Barcelona"
+    },
+    {
+        "value": 40000000.0,
+        "date": "23 mar 2023",
+        "club": "FC Barcelona"
+    },
+    {
+        "value": 30000000.0,
+        "date": "13 cze 2023",
+        "club": "FC Barcelona"
+    },
+    {
+        "value": 20000000.0,
+        "date": "22 gru 2023",
+        "club": "FC Barcelona"
+    },
+    {
+        "value": 15000000.0,
+        "date": "21 mar 2024",
+        "club": "FC Barcelona"
+    },
+    {
+        "value": 15000000.0,
+        "date": "7 cze 2024",
+        "club": "FC Barcelona"
+    }
+]
