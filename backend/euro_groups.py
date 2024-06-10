@@ -1,6 +1,5 @@
 import requests
 import json
-
 def get_countries_rating():
     url = "https://www.sofascore.com/api/v1/rankings/type/2"
     response = requests.get(url)
@@ -37,9 +36,5 @@ def get_teams_info():
             all_groups.append({'group': group_name, 'team': team_name})
 
     # Convert the list of dictionaries to JSON format
-    return json.dumps(all_groups, ensure_ascii=False, indent=4)
+    return all_groups
 
-
-
-teams = get_teams_info()
-print(teams)
