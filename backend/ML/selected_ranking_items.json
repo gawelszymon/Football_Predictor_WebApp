@@ -1,0 +1,1057 @@
+[
+    {
+        "id": "43922",
+        "name": "Argentina",
+        "totalPoints": 1858
+    },
+    {
+        "id": "43946",
+        "name": "France",
+        "totalPoints": 1840.59
+    },
+    {
+        "id": "43935",
+        "name": "Belgium",
+        "totalPoints": 1795.23
+    },
+    {
+        "id": "43942",
+        "name": "England",
+        "totalPoints": 1794.9
+    },
+    {
+        "id": "43924",
+        "name": "Brazil",
+        "totalPoints": 1788.65
+    },
+    {
+        "id": "43963",
+        "name": "Portugal",
+        "totalPoints": 1748.11
+    },
+    {
+        "id": "43960",
+        "name": "Netherlands",
+        "totalPoints": 1742.29
+    },
+    {
+        "id": "43969",
+        "name": "Spain",
+        "totalPoints": 1727.5
+    },
+    {
+        "id": "43954",
+        "name": "Italy",
+        "totalPoints": 1724.6
+    },
+    {
+        "id": "43938",
+        "name": "Croatia",
+        "totalPoints": 1721.07
+    },
+    {
+        "id": "43921",
+        "name": "USA",
+        "totalPoints": 1681.13
+    },
+    {
+        "id": "43926",
+        "name": "Colombia",
+        "totalPoints": 1664.28
+    },
+    {
+        "id": "43872",
+        "name": "Morocco",
+        "totalPoints": 1661.42
+    },
+    {
+        "id": "43911",
+        "name": "Mexico",
+        "totalPoints": 1661.11
+    },
+    {
+        "id": "43930",
+        "name": "Uruguay",
+        "totalPoints": 1659.39
+    },
+    {
+        "id": "43948",
+        "name": "Germany",
+        "totalPoints": 1644.21
+    },
+    {
+        "id": "43879",
+        "name": "Senegal",
+        "totalPoints": 1624.73
+    },
+    {
+        "id": "43819",
+        "name": "Japan",
+        "totalPoints": 1621.88
+    },
+    {
+        "id": "43971",
+        "name": "Switzerland",
+        "totalPoints": 1616.41
+    },
+    {
+        "id": "43817",
+        "name": "IR Iran",
+        "totalPoints": 1613.96
+    },
+    {
+        "id": "43941",
+        "name": "Denmark",
+        "totalPoints": 1602.72
+    },
+    {
+        "id": "43973",
+        "name": "Ukraine",
+        "totalPoints": 1568.86
+    },
+    {
+        "id": "43822",
+        "name": "Korea Republic",
+        "totalPoints": 1563.99
+    },
+    {
+        "id": "43976",
+        "name": "Australia",
+        "totalPoints": 1563.93
+    },
+    {
+        "id": "43934",
+        "name": "Austria",
+        "totalPoints": 1554.86
+    },
+    {
+        "id": "43950",
+        "name": "Hungary",
+        "totalPoints": 1532.2
+    },
+    {
+        "id": "43970",
+        "name": "Sweden",
+        "totalPoints": 1531.68
+    },
+    {
+        "id": "43962",
+        "name": "Poland",
+        "totalPoints": 1531.49
+    },
+    {
+        "id": "43974",
+        "name": "Wales",
+        "totalPoints": 1531.38
+    },
+    {
+        "id": "43876",
+        "name": "Nigeria",
+        "totalPoints": 1520.27
+    },
+    {
+        "id": "43927",
+        "name": "Ecuador",
+        "totalPoints": 1518.22
+    },
+    {
+        "id": "43929",
+        "name": "Peru",
+        "totalPoints": 1515.82
+    },
+    {
+        "id": "1902465",
+        "name": "Serbia",
+        "totalPoints": 1514.2
+    },
+    {
+        "id": "43834",
+        "name": "Qatar",
+        "totalPoints": 1507.94
+    },
+    {
+        "id": "43965",
+        "name": "Russia",
+        "totalPoints": 1504.02
+    },
+    {
+        "id": "43995",
+        "name": "Czechia",
+        "totalPoints": 1501.47
+    },
+    {
+        "id": "43855",
+        "name": "Egypt",
+        "totalPoints": 1499.72
+    },
+    {
+        "id": "43854",
+        "name": "C\u00f4te d'Ivoire",
+        "totalPoints": 1498.8
+    },
+    {
+        "id": "43967",
+        "name": "Scotland",
+        "totalPoints": 1497.46
+    },
+    {
+        "id": "43972",
+        "name": "T\u00fcrkiye",
+        "totalPoints": 1495.94
+    },
+    {
+        "id": "43888",
+        "name": "Tunisia",
+        "totalPoints": 1493.12
+    },
+    {
+        "id": "43925",
+        "name": "Chile",
+        "totalPoints": 1491.71
+    },
+    {
+        "id": "43843",
+        "name": "Algeria",
+        "totalPoints": 1482.71
+    },
+    {
+        "id": "43869",
+        "name": "Mali",
+        "totalPoints": 1477.9
+    },
+    {
+        "id": "43914",
+        "name": "Panama",
+        "totalPoints": 1475.62
+    },
+    {
+        "id": "43964",
+        "name": "Romania",
+        "totalPoints": 1468.17
+    },
+    {
+        "id": "43961",
+        "name": "Norway",
+        "totalPoints": 1467.51
+    },
+    {
+        "id": "44002",
+        "name": "Slovakia",
+        "totalPoints": 1461.55
+    },
+    {
+        "id": "43899",
+        "name": "Canada",
+        "totalPoints": 1461.16
+    },
+    {
+        "id": "43949",
+        "name": "Greece",
+        "totalPoints": 1457.89
+    },
+    {
+        "id": "43849",
+        "name": "Cameroon",
+        "totalPoints": 1452.59
+    },
+    {
+        "id": "43901",
+        "name": "Costa Rica",
+        "totalPoints": 1445.38
+    },
+    {
+        "id": "43835",
+        "name": "Saudi Arabia",
+        "totalPoints": 1443.53
+    },
+    {
+        "id": "43931",
+        "name": "Venezuela",
+        "totalPoints": 1442.29
+    },
+    {
+        "id": "43910",
+        "name": "Jamaica",
+        "totalPoints": 1435.33
+    },
+    {
+        "id": "43928",
+        "name": "Paraguay",
+        "totalPoints": 1430.73
+    },
+    {
+        "id": "43968",
+        "name": "Slovenia",
+        "totalPoints": 1427.84
+    },
+    {
+        "id": "43818",
+        "name": "Iraq",
+        "totalPoints": 1420.47
+    },
+    {
+        "id": "43883",
+        "name": "South Africa",
+        "totalPoints": 1407.67
+    },
+    {
+        "id": "43953",
+        "name": "Republic of Ireland",
+        "totalPoints": 1399.74
+    },
+    {
+        "id": "43945",
+        "name": "Finland",
+        "totalPoints": 1394.44
+    },
+    {
+        "id": "43847",
+        "name": "Burkina Faso",
+        "totalPoints": 1390.38
+    },
+    {
+        "id": "20014",
+        "name": "Congo DR",
+        "totalPoints": 1388.25
+    },
+    {
+        "id": "44005",
+        "name": "Uzbekistan",
+        "totalPoints": 1386.58
+    },
+    {
+        "id": "43850",
+        "name": "Cabo Verde",
+        "totalPoints": 1383.44
+    },
+    {
+        "id": "43932",
+        "name": "Albania",
+        "totalPoints": 1375.1
+    },
+    {
+        "id": "43840",
+        "name": "United Arab Emirates",
+        "totalPoints": 1366.45
+    },
+    {
+        "id": "43860",
+        "name": "Ghana",
+        "totalPoints": 1358.77
+    },
+    {
+        "id": "44000",
+        "name": "North Macedonia",
+        "totalPoints": 1354.19
+    },
+    {
+        "id": "999",
+        "name": "Montenegro",
+        "totalPoints": 1351.72
+    },
+    {
+        "id": "43820",
+        "name": "Jordan",
+        "totalPoints": 1350.21
+    },
+    {
+        "id": "43951",
+        "name": "Iceland",
+        "totalPoints": 1346.82
+    },
+    {
+        "id": "43952",
+        "name": "Northern Ireland",
+        "totalPoints": 1341.05
+    },
+    {
+        "id": "44037",
+        "name": "Bosnia and Herzegovina",
+        "totalPoints": 1335.6
+    },
+    {
+        "id": "43947",
+        "name": "Georgia",
+        "totalPoints": 1333.76
+    },
+    {
+        "id": "43861",
+        "name": "Guinea",
+        "totalPoints": 1324.65
+    },
+    {
+        "id": "43831",
+        "name": "Oman",
+        "totalPoints": 1323.23
+    },
+    {
+        "id": "43984",
+        "name": "Israel",
+        "totalPoints": 1311.39
+    },
+    {
+        "id": "43856",
+        "name": "Equatorial Guinea",
+        "totalPoints": 1308.03
+    },
+    {
+        "id": "43808",
+        "name": "Bahrain",
+        "totalPoints": 1307.53
+    },
+    {
+        "id": "43904",
+        "name": "El Salvador",
+        "totalPoints": 1305.02
+    },
+    {
+        "id": "43909",
+        "name": "Honduras",
+        "totalPoints": 1301.92
+    },
+    {
+        "id": "43936",
+        "name": "Bulgaria",
+        "totalPoints": 1292.59
+    },
+    {
+        "id": "43858",
+        "name": "Gabon",
+        "totalPoints": 1287.33
+    },
+    {
+        "id": "43923",
+        "name": "Bolivia",
+        "totalPoints": 1283.88
+    },
+    {
+        "id": "43891",
+        "name": "Zambia",
+        "totalPoints": 1278.26
+    },
+    {
+        "id": "43958",
+        "name": "Luxembourg",
+        "totalPoints": 1277.94
+    },
+    {
+        "id": "43812",
+        "name": "China PR",
+        "totalPoints": 1275.22
+    },
+    {
+        "id": "43838",
+        "name": "Syria",
+        "totalPoints": 1266.52
+    },
+    {
+        "id": "43908",
+        "name": "Haiti",
+        "totalPoints": 1262.5
+    },
+    {
+        "id": "1930407",
+        "name": "Cura\u00e7ao",
+        "totalPoints": 1262.48
+    },
+    {
+        "id": "43889",
+        "name": "Uganda",
+        "totalPoints": 1242.15
+    },
+    {
+        "id": "43989",
+        "name": "Palestine",
+        "totalPoints": 1238.66
+    },
+    {
+        "id": "43844",
+        "name": "Angola",
+        "totalPoints": 1235.76
+    },
+    {
+        "id": "43933",
+        "name": "Armenia",
+        "totalPoints": 1229.18
+    },
+    {
+        "id": "43937",
+        "name": "Belarus",
+        "totalPoints": 1226.54
+    },
+    {
+        "id": "43845",
+        "name": "Benin",
+        "totalPoints": 1225.68
+    },
+    {
+        "id": "43920",
+        "name": "Trinidad and Tobago",
+        "totalPoints": 1220.65
+    },
+    {
+        "id": "44003",
+        "name": "Tajikistan",
+        "totalPoints": 1216.76
+    },
+    {
+        "id": "43999",
+        "name": "Kyrgyz Republic",
+        "totalPoints": 1213.6
+    },
+    {
+        "id": "43839",
+        "name": "Thailand",
+        "totalPoints": 1208.93
+    },
+    {
+        "id": "1942535",
+        "name": "Kosovo",
+        "totalPoints": 1205.85
+    },
+    {
+        "id": "44027",
+        "name": "Kazakhstan",
+        "totalPoints": 1203.64
+    },
+    {
+        "id": "43978",
+        "name": "Aotearoa New Zealand",
+        "totalPoints": 1197.68
+    },
+    {
+        "id": "43870",
+        "name": "Mauritania",
+        "totalPoints": 1195.5
+    },
+    {
+        "id": "43874",
+        "name": "Namibia",
+        "totalPoints": 1192.13
+    },
+    {
+        "id": "43863",
+        "name": "Kenya",
+        "totalPoints": 1191.24
+    },
+    {
+        "id": "43906",
+        "name": "Guatemala",
+        "totalPoints": 1188.28
+    },
+    {
+        "id": "43867",
+        "name": "Madagascar",
+        "totalPoints": 1185.86
+    },
+    {
+        "id": "43873",
+        "name": "Mozambique",
+        "totalPoints": 1184.49
+    },
+    {
+        "id": "43853",
+        "name": "Congo",
+        "totalPoints": 1179.8
+    },
+    {
+        "id": "43994",
+        "name": "Azerbaijan",
+        "totalPoints": 1177.83
+    },
+    {
+        "id": "43887",
+        "name": "Togo",
+        "totalPoints": 1170.34
+    },
+    {
+        "id": "43866",
+        "name": "Libya",
+        "totalPoints": 1166.71
+    },
+    {
+        "id": "43841",
+        "name": "Vietnam",
+        "totalPoints": 1164.54
+    },
+    {
+        "id": "43862",
+        "name": "Guinea-Bissau",
+        "totalPoints": 1163.44
+    },
+    {
+        "id": "1896913",
+        "name": "Comoros",
+        "totalPoints": 1163.02
+    },
+    {
+        "id": "43821",
+        "name": "Korea DPR",
+        "totalPoints": 1160.57
+    },
+    {
+        "id": "43886",
+        "name": "Tanzania",
+        "totalPoints": 1159.81
+    },
+    {
+        "id": "43825",
+        "name": "Lebanon",
+        "totalPoints": 1158.96
+    },
+    {
+        "id": "43815",
+        "name": "India",
+        "totalPoints": 1145.94
+    },
+    {
+        "id": "43892",
+        "name": "Zimbabwe",
+        "totalPoints": 1143.66
+    },
+    {
+        "id": "43943",
+        "name": "Estonia",
+        "totalPoints": 1141.13
+    },
+    {
+        "id": "43939",
+        "name": "Cyprus",
+        "totalPoints": 1141.03
+    },
+    {
+        "id": "43868",
+        "name": "Malawi",
+        "totalPoints": 1140.93
+    },
+    {
+        "id": "43881",
+        "name": "Sierra Leone",
+        "totalPoints": 1137.36
+    },
+    {
+        "id": "43884",
+        "name": "Sudan",
+        "totalPoints": 1129.32
+    },
+    {
+        "id": "43851",
+        "name": "Central African Republic",
+        "totalPoints": 1128.17
+    },
+    {
+        "id": "43875",
+        "name": "Niger",
+        "totalPoints": 1125.5
+    },
+    {
+        "id": "43859",
+        "name": "The Gambia",
+        "totalPoints": 1114.8
+    },
+    {
+        "id": "43877",
+        "name": "Rwanda",
+        "totalPoints": 1112.44
+    },
+    {
+        "id": "43980",
+        "name": "Solomon Islands",
+        "totalPoints": 1111.02
+    },
+    {
+        "id": "43944",
+        "name": "Faroe Islands",
+        "totalPoints": 1103.43
+    },
+    {
+        "id": "43816",
+        "name": "Indonesia",
+        "totalPoints": 1102.7
+    },
+    {
+        "id": "43913",
+        "name": "Nicaragua",
+        "totalPoints": 1102.54
+    },
+    {
+        "id": "43955",
+        "name": "Latvia",
+        "totalPoints": 1095.91
+    },
+    {
+        "id": "43957",
+        "name": "Lithuania",
+        "totalPoints": 1095.23
+    },
+    {
+        "id": "43827",
+        "name": "Malaysia",
+        "totalPoints": 1094.54
+    },
+    {
+        "id": "43823",
+        "name": "Kuwait",
+        "totalPoints": 1085.46
+    },
+    {
+        "id": "43848",
+        "name": "Burundi",
+        "totalPoints": 1081.63
+    },
+    {
+        "id": "43833",
+        "name": "Philippines",
+        "totalPoints": 1075.14
+    },
+    {
+        "id": "1882218",
+        "name": "Antigua and Barbuda",
+        "totalPoints": 1072.66
+    },
+    {
+        "id": "44004",
+        "name": "Turkmenistan",
+        "totalPoints": 1072.52
+    },
+    {
+        "id": "43919",
+        "name": "Suriname",
+        "totalPoints": 1071.85
+    },
+    {
+        "id": "43857",
+        "name": "Ethiopia",
+        "totalPoints": 1068.48
+    },
+    {
+        "id": "43846",
+        "name": "Botswana",
+        "totalPoints": 1065.07
+    },
+    {
+        "id": "43916",
+        "name": "St Kitts and Nevis",
+        "totalPoints": 1056.61
+    },
+    {
+        "id": "43885",
+        "name": "Eswatini",
+        "totalPoints": 1048.89
+    },
+    {
+        "id": "43864",
+        "name": "Lesotho",
+        "totalPoints": 1047.58
+    },
+    {
+        "id": "43903",
+        "name": "Dominican Republic",
+        "totalPoints": 1042.86
+    },
+    {
+        "id": "20000",
+        "name": "Afghanistan",
+        "totalPoints": 1036.92
+    },
+    {
+        "id": "43865",
+        "name": "Liberia",
+        "totalPoints": 1029.58
+    },
+    {
+        "id": "44036",
+        "name": "Moldova",
+        "totalPoints": 1028.85
+    },
+    {
+        "id": "43907",
+        "name": "Guyana",
+        "totalPoints": 1020.31
+    },
+    {
+        "id": "43836",
+        "name": "Singapore",
+        "totalPoints": 1019.06
+    },
+    {
+        "id": "43842",
+        "name": "Yemen",
+        "totalPoints": 1017.05
+    },
+    {
+        "id": "43814",
+        "name": "Hong Kong, China",
+        "totalPoints": 1012.83
+    },
+    {
+        "id": "20010",
+        "name": "New Caledonia",
+        "totalPoints": 1008.92
+    },
+    {
+        "id": "43813",
+        "name": "Chinese Taipei",
+        "totalPoints": 1007.3
+    },
+    {
+        "id": "43915",
+        "name": "Puerto Rico",
+        "totalPoints": 1006.35
+    },
+    {
+        "id": "43828",
+        "name": "Maldives",
+        "totalPoints": 1003.48
+    },
+    {
+        "id": "43981",
+        "name": "Tahiti",
+        "totalPoints": 999.48
+    },
+    {
+        "id": "43829",
+        "name": "Myanmar",
+        "totalPoints": 999.46
+    },
+    {
+        "id": "20001",
+        "name": "Andorra",
+        "totalPoints": 998.75
+    },
+    {
+        "id": "43917",
+        "name": "St Lucia",
+        "totalPoints": 988.67
+    },
+    {
+        "id": "43979",
+        "name": "Papua New Guinea",
+        "totalPoints": 985.32
+    },
+    {
+        "id": "1935341",
+        "name": "South Sudan",
+        "totalPoints": 984.65
+    },
+    {
+        "id": "43977",
+        "name": "Fiji",
+        "totalPoints": 983.81
+    },
+    {
+        "id": "43902",
+        "name": "Cuba",
+        "totalPoints": 980.65
+    },
+    {
+        "id": "43898",
+        "name": "Bermuda",
+        "totalPoints": 974.3
+    },
+    {
+        "id": "43959",
+        "name": "Malta",
+        "totalPoints": 973.14
+    },
+    {
+        "id": "43982",
+        "name": "Vanuatu",
+        "totalPoints": 972.14
+    },
+    {
+        "id": "43918",
+        "name": "St Vincent and the Grenadines",
+        "totalPoints": 953.47
+    },
+    {
+        "id": "43905",
+        "name": "Grenada",
+        "totalPoints": 950.99
+    },
+    {
+        "id": "20009",
+        "name": "Montserrat",
+        "totalPoints": 946.08
+    },
+    {
+        "id": "43852",
+        "name": "Chad",
+        "totalPoints": 945.92
+    },
+    {
+        "id": "43896",
+        "name": "Barbados",
+        "totalPoints": 943.8
+    },
+    {
+        "id": "43830",
+        "name": "Nepal",
+        "totalPoints": 937.84
+    },
+    {
+        "id": "44009",
+        "name": "Cambodia",
+        "totalPoints": 925.4
+    },
+    {
+        "id": "43997",
+        "name": "Dominica",
+        "totalPoints": 922.25
+    },
+    {
+        "id": "1882637",
+        "name": "Samoa",
+        "totalPoints": 920.54
+    },
+    {
+        "id": "44011",
+        "name": "Belize",
+        "totalPoints": 919.52
+    },
+    {
+        "id": "43871",
+        "name": "Mauritius",
+        "totalPoints": 919.4
+    },
+    {
+        "id": "43809",
+        "name": "Bangladesh",
+        "totalPoints": 905.3
+    },
+    {
+        "id": "20003",
+        "name": "Bhutan",
+        "totalPoints": 904.1
+    },
+    {
+        "id": "43826",
+        "name": "Macau",
+        "totalPoints": 896.62
+    },
+    {
+        "id": "44007",
+        "name": "Cook Islands",
+        "totalPoints": 896.59
+    },
+    {
+        "id": "43878",
+        "name": "S\u00e3o Tom\u00e9 and Pr\u00edncipe",
+        "totalPoints": 893.58
+    },
+    {
+        "id": "20012",
+        "name": "American Samoa",
+        "totalPoints": 890.97
+    },
+    {
+        "id": "43824",
+        "name": "Laos",
+        "totalPoints": 889.62
+    },
+    {
+        "id": "20008",
+        "name": "Mongolia",
+        "totalPoints": 884.04
+    },
+    {
+        "id": "43996",
+        "name": "Djibouti",
+        "totalPoints": 877.28
+    },
+    {
+        "id": "43894",
+        "name": "Aruba",
+        "totalPoints": 875.82
+    },
+    {
+        "id": "43810",
+        "name": "Brunei Darussalam",
+        "totalPoints": 872.65
+    },
+    {
+        "id": "43832",
+        "name": "Pakistan",
+        "totalPoints": 849.94
+    },
+    {
+        "id": "43900",
+        "name": "Cayman Islands",
+        "totalPoints": 847.81
+    },
+    {
+        "id": "43880",
+        "name": "Seychelles",
+        "totalPoints": 845.53
+    },
+    {
+        "id": "1890334",
+        "name": "Timor-Leste",
+        "totalPoints": 843.4
+    },
+    {
+        "id": "43882",
+        "name": "Somalia",
+        "totalPoints": 842.64
+    },
+    {
+        "id": "43895",
+        "name": "Bahamas",
+        "totalPoints": 835.81
+    },
+    {
+        "id": "44039",
+        "name": "Tonga",
+        "totalPoints": 833.12
+    },
+    {
+        "id": "43956",
+        "name": "Liechtenstein",
+        "totalPoints": 832.75
+    },
+    {
+        "id": "1941613",
+        "name": "Gibraltar",
+        "totalPoints": 832.5
+    },
+    {
+        "id": "43837",
+        "name": "Sri Lanka",
+        "totalPoints": 829.41
+    },
+    {
+        "id": "20007",
+        "name": "Guam",
+        "totalPoints": 821.91
+    },
+    {
+        "id": "20011",
+        "name": "Turks and Caicos Islands",
+        "totalPoints": 817.03
+    },
+    {
+        "id": "20004",
+        "name": "British Virgin Islands",
+        "totalPoints": 813.31
+    },
+    {
+        "id": "1881967",
+        "name": "US Virgin Islands",
+        "totalPoints": 797.29
+    },
+    {
+        "id": "20002",
+        "name": "Anguilla",
+        "totalPoints": 793.48
+    },
+    {
+        "id": "43966",
+        "name": "San Marino",
+        "totalPoints": 742.05
+    },
+    {
+        "id": "20006",
+        "name": "Eritrea",
+        "totalPoints": 855.56
+    }
+]
