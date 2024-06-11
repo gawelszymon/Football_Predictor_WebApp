@@ -65,6 +65,9 @@ def clean_player_name(player_name):
     if player_name.endswith("(captain)"):
         index = player_name.find("(captain)")
         player_name = player_name[:index]
+    if player_name.endswith("(c)"):
+        index = player_name.find("(c)")
+        player_name = player_name[:index]
     if "(until" in player_name:
         index = player_name.find("(until")
         player_name = player_name[:index]
@@ -149,7 +152,27 @@ def clean_player_name(player_name):
         "Yaroslav Rakitskiy": "Yaroslav Rakitskyi",
         "Hannes Þór Halldórsson": "Hannes Thór Halldórsson",
         "Birkir Már Sævarsson": "Birkir Már Saevarsson",
-        "Kolbeinn Sigþórsson": "Kolbeinn Sigthórsson"
+        "Kolbeinn Sigþórsson": "Kolbeinn Sigthórsson",
+        "Jabu Pule": "Jabu Mahlangu",
+        "George Koumantarakis": "Georgios Koumantarakis",
+        "Yang Pu": "Pu Yang",
+        "Wu Chengying": "Chengying Wu",
+        "Shao Jiayi": "Jiayi Shao",
+        "Sun Jihai": "Jihai Sun",
+        "Ma Mingyu": "Mingyu Ma",
+        "Hao Haidong": "Haidong Hao",
+        "Yu Genwei": "Genwei Yu",
+        "Su Maozhen": "Maozhen Su",
+        "Gao Yao": "Yao Gao",
+        "Li Weifeng": "Weifeng Li",
+        "Zhao Junzhe": "Junzhe Zhao",
+        "Qu Bo": "Bo Qu",
+        "Du Wei": "Wei Du",
+        "Li Xiaopeng": "Xiaopeng Li",
+        "Qi Hong": "Hong Qi",
+        "Xu Yunlong": "Yunlong Xu",
+        "Jiang Jin": "Jin Jiang",
+        "Ou Chuliang": "Chuliang Ou",
     }
     return replacements.get(player_name, player_name)
 
@@ -230,33 +253,58 @@ def save_market_value_history(player_id, conn):
         print(response.text)
 
 # tournament = "euro"
-# conn = create_database(2000)
+# conn = create_database(tournament, 2000)
 # # Pobranie danych drużyn
 # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2000_squads", conn)
-tournament = "euro"
-conn = create_database(tournament, 2004)
-# Pobranie danych drużyn
-scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2004_squads", conn)
 # tournament = "euro"
-# conn = create_database(2008)
+# conn = create_database(tournament, 2004)
+# # Pobranie danych drużyn
+# scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2004_squads", conn)
+# tournament = "euro"
+# conn = create_database(tournament, 2008)
 # # Pobranie danych drużyn
 # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2008_squads", conn)
 # tournament = "euro"
-# conn = create_database(2012)
+# conn = create_database(tournament, 2012)
 # # Pobranie danych drużyn
 # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2012_squads", conn)
 # tournament = "euro"
-# conn = create_database(2016)
+# conn = create_database(tournament, 2016)
 # # Pobranie danych drużyn
 # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2016_squads", conn)
 # tournament = "euro"
-# conn = create_database(2020)
+# conn = create_database(tournament, 2020)
 # # Pobranie danych drużyn
 # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2020_squads", conn)
 # tournament = "euro"
-# conn = create_database(2024)
+# conn = create_database(tournament, 2024)
 # # Pobranie danych drużyn
 # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2024_squads", conn)
+
+tournament = "world_cup"
+conn = create_database(tournament, 2002)
+# Pobranie danych drużyn
+scrap_squad("https://en.wikipedia.org/wiki/2002_FIFA_World_Cup_squads", conn)
+# tournament = "world_cup"
+# conn = create_database(tournament, 2006)
+# # Pobranie danych drużyn
+# scrap_squad("https://en.wikipedia.org/wiki/2006_FIFA_World_Cup_squads", conn)
+# tournament = "world_cup"
+# conn = create_database(tournament, 2010)
+# # Pobranie danych drużyn
+# scrap_squad("https://en.wikipedia.org/wiki/2010_FIFA_World_Cup_squads", conn)
+# tournament = "world_cup"
+# conn = create_database(tournament, 2014)
+# # Pobranie danych drużyn
+# scrap_squad("https://en.wikipedia.org/wiki/2014_FIFA_World_Cup_squads", conn)
+# tournament = "world_cup"
+# conn = create_database(tournament, 2018)
+# # Pobranie danych drużyn
+# scrap_squad("https://en.wikipedia.org/wiki/2018_FIFA_World_Cup_squads", conn)
+# tournament = "world_cup"
+# conn = create_database(tournament, 2022)
+# # Pobranie danych drużyn
+# scrap_squad("https://en.wikipedia.org/wiki/2022_FIFA_World_Cup_squads", conn)
 
 # Dodanie kolumny Transfermarkt ID
 cursor = conn.cursor()
