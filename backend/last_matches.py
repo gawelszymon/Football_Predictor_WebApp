@@ -24,7 +24,6 @@ def get_team_matches(team_name, team_id):
         home_score = away_score = "N/A"
         scorers = []
         assists = []
-        man_of_the_match = None
 
         for incident in incidents_data['incidents']:
             if incident.get('incidentType') == 'period' and incident.get('text') == 'FT':
@@ -36,8 +35,6 @@ def get_team_matches(team_name, team_id):
                 scorers.append(scorer)
                 if assist:
                     assists.append(assist)
-            elif incident.get('incidentType') == 'manOfTheMatch':
-                man_of_the_match = incident.get('player', {}).get('name', 'Unknown')
 
         if home_score == "N/A" or away_score == "N/A":
             result = "N/A"
@@ -51,7 +48,5 @@ def get_team_matches(team_name, team_id):
         print(f"Match: {home_team}-{away_team}, Score: {home_score}-{away_score}, Result: {result}, Type: {match_type}")
         print(f"Scorers: {', '.join(scorers)}")
         print(f"Assists: {', '.join(assists)}")
-        if man_of_the_match:
-            print(f"Man of the Match: {man_of_the_match}")
 
 get_team_matches("Poland", 4703)
