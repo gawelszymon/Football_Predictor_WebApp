@@ -1,0 +1,98 @@
+body {
+    font-family: 'Arial', sans-serif;
+}
+
+.navbar-nav {
+    padding-left: 50px;
+}
+
+.navbar-nav .nav-item {
+    margin: 0 35px;
+}
+
+.container {
+    margin-top: 7.5em;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+    box-sizing: border-box;
+}
+
+h1 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #007bff;
+}
+
+#predictionForm{
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+label {
+    font-size: 16px;
+    text-align: left;
+}
+
+select,
+input {
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+button {
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.result {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #333;
+}
+
+.groups {
+    margin-top: 40px;
+}
+
+.group {
+    margin-bottom: 20px;
+}
+
+.group h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.flags {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.flags img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+}

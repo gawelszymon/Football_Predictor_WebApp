@@ -3,8 +3,12 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.12 (RAS_question)" />
   </component>
+<<<<<<< HEAD
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12" project-jdk-type="Python SDK" />
   <component name="PyCharmProfessionalAdvertiser">
     <option name="shown" value="true" />
   </component>
+=======
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (www_project)" project-jdk-type="Python SDK" />
+>>>>>>> 6fe654c15d3ee5b18d0b646db6c8d7d7aa457c91
 </project>
