@@ -29,49 +29,56 @@ def get_player_rating(player_id):
         mean = None
     return mean
 
-# Funkcja do pobierania szczegółowych statystyk zawodnika
-def get_player_statistics(player_url):
-    leagues = {
-        'england Premier League' : [17, 52186],
-        'spain LaLiga' : [8, 52376],
-        'turkey Trendyol Süper Lig' : [52, 53190],
-        'italy Serie A' : [23, 52760],
-        'france Ligue 1' : [34, 52571],
-        'poland Ekstraklasa' : [202, 61236],
-        'greece Stoiximan Super League' : [185, 53223],
-        'bulgaria Parva Liga' : [247, 52173],
-        'usa MLS' : [524, 57317],
-               }
-    response = requests.get(player_url)
-    if response.status_code == 200:
-        # Liga rozgrywkowa
-        soup = BeautifulSoup(response.content, 'html.parser')
-        league_a = soup.find('a', href=lambda x: x and '/turniej/pilka-nozna/' in x)
-        league = league_a.get_text(strip=True) if league_a else None
+def get_player_stat(player_id):
+    stat_url = f"https://www.sofascore.com/api/v1/player/{player_id}/statistics/seasons"
+    response = requests.get(stat_url)
+    data = response.json()
 
-        # Kraj ligi rozgrywkowej
-        country_element = soup.find('a', href=lambda x: x and '/pl/pilka-nozna/' in x)
-        if country_element:
-            href = country_element['href']
-            country_name = href.split('/')[-1]
-    print(country_name, league)
-    name = country_name+ " " + league
-    id1, id2 = leagues[name]
+    tournament_id = None
+    latest_season_id = None
+    latest_season_year = 0
 
-    player_id = player_url.split('/')[-1]
-    url = f'https://www.sofascore.com/api/v1/player/{player_id}/unique-tournament/{id1}/season/{id2}/statistics/overall'
-    response = requests.get(url)
-    statistics = {}
-    if response.status_code == 200:
-        data = response.json()
-        statistics['matches_played'] = data['statistics'].get('matchesStarted', 'N/A')
-        statistics['goals'] = data['statistics'].get('goals', 'N/A')
-        statistics['assists'] = data['statistics'].get('assists', 'N/A')
-        statistics['shots_per_game'] = data['statistics'].get('shotsOnTarget', 'N/A')
-        statistics['key_passes'] = data['statistics'].get('keyPasses', 'N/A')
-        statistics['yellow_cards'] = data['statistics'].get('yellowCards', 'N/A')
-        statistics['red_cards'] = data['statistics'].get('redCards', 'N/A')
-    return statistics
+    # Przeszukujemy wszystkie turnieje i pobieramy id turnieju oraz najnowszego sezonu
+    for tournament in data.get('uniqueTournamentSeasons', []):
+        if 'id' in tournament['uniqueTournament']:
+            tournament_id = tournament['uniqueTournament']['id']
+            for season in tournament.get('seasons', []):
+                season_year = int(season['year'].split('/')[0])
+                if season_year > latest_season_year:
+                    latest_season_year = season_year
+                    latest_season_id = season['id']
+            break
+
+    return tournament_id, latest_season_id
+
+def get_player_overall_stats(player_id, tournament_id, season_id):
+    stats_url = f"https://www.sofascore.com/api/v1/player/{player_id}/unique-tournament/{tournament_id}/season/{season_id}/statistics/overall"
+    response = requests.get(stats_url)
+    data = response.json()
+
+    statistics = data['statistics']
+    goals = statistics.get('goals', 0)
+    assists = statistics.get('assists', 0)
+    matches = statistics.get('matchesStarted', 0)
+    bigchances = statistics.get('bigChancesCreated', 0)
+    keypasses = statistics.get('keyPasses', 0)
+    saves = statistics.get('saves', 0)
+    tackleswon = statistics.get('tacklesWon', 0)
+    successfuldribbles = statistics.get('successfulDribbles', 0)
+    clearances = statistics.get('clearances', 0)
+
+    return {
+        'goals': goals,
+        'assists': assists,
+        'matches': matches,
+        'bigChancesCreated': bigchances,
+        'keyPasses': keypasses,
+        'saves': saves,
+        'tacklesWon': tackleswon,
+        'successfulDribbles': successfuldribbles,
+        'clearances': clearances,
+
+    }
 
 # Funkcja, która scrappuje dane jednego zawodnika
 def get_player_info(player_url):
@@ -117,7 +124,8 @@ def get_player_info(player_url):
         rating = get_player_rating(player_id)
 
         # Statystyki zawodnika
-        stats = get_player_statistics(player_url)
+        tournament_id, latest_season_id = get_player_stat(player_id)
+        stats = get_player_overall_stats(player_id, tournament_id, latest_season_id)
 
         return name, height, age, league, country_name, position, rating, stats
 
