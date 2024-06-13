@@ -10,6 +10,18 @@ CORS(app)
 def index():
     return render_template('index.html')
 
+@app.route('/matches')
+def matches():
+    return render_template('matches.html')
+
+@app.route('/bracket')
+def bracket():
+    return render_template('bracket.html')
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
 @app.route('/euro_groups', methods=['GET'])
 def euro_groups():
     data = get_teams_info()
