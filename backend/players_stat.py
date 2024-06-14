@@ -96,9 +96,12 @@ def get_player_info(player_url):
         age = None
         for element in elements:
             if 'cm' in element.text:
-                height = element.text
+                h = element.text
+                height = h.split(' ')[0]
+
             elif 'lat' in element.text:
-                age = element.text
+                a = element.text
+                age = a.split(' ')[0]
 
         # Pozycja zawodnika
         position_label = soup.find('div', string='Pozycja')
