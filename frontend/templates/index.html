@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+    <div id="cointainer-body" class="container">
+        <h1>Football Match Predictor. EURO 2024 EDITION</h1>
+        <form id="predictionForm">
+            <label for="team1">Team 1:</label>
+            <select id="team1" name="team1" required>
+            </select>
+
+            <label for="team2">Team 2:</label>
+            <select id="team2" name="team2" required>
+            </select>
+
+            <button type="submit">Predict results</button>
+        </form>
+        <div id="result" class="result"></div>
+
+        <div class="groups" id="groups-container">
+            <!-- Groups will be dynamically populated here -->
+        </div>
+    </div>
+{% endblock %}

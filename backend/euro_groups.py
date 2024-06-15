@@ -1,5 +1,6 @@
 import requests
 import json
+import pandas as pd
 def get_countries_rating():
     url = "https://www.sofascore.com/api/v1/rankings/type/2"
     response = requests.get(url)
@@ -16,11 +17,6 @@ def get_countries_rating():
         print(f"Nie udało się pobrać danych, status code: {response.status_code}")
         return None
 
-def get_team_points(name):
-    teams_points = get_countries_rating()
-    return teams_points[name]
-
-
 # Tutaj bocik scrappuje info ktore pozniej bedziemy dodawac do bazy danych
 def get_teams_info():
     url = "https://www.sofascore.com/api/v1/unique-tournament/1/season/56953/standings/total"
@@ -29,12 +25,29 @@ def get_teams_info():
     standings = data.get('standings', [])
     all_groups = []
 
+    ratings = get_countries_rating()
+
     for group in standings:
         group_name = group['tournament']['name']
         for row in group.get('rows', []):
             team_name = row['team']['name']
-            all_groups.append({'group': group_name, 'team': team_name})
-
-    # Convert the list of dictionaries to JSON format
+            points = row['points']
+            rating = ratings.get(team_name, 'Brak danych')
+            all_groups.append({
+                'group': group_name,
+                'team': team_name,
+                'points': points,
+                'rating': rating
+            })
     return all_groups
 
+def display_standings():
+    teams_info = get_teams_info()
+    if teams_info:
+        df = pd.DataFrame(teams_info)
+        df_sorted = df.sort_values(by=['group'])
+        print(df_sorted)
+    else:
+        print("Nie udało się pobrać danych o zespołach.")
+
+display_standings()
