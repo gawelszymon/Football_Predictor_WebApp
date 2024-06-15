@@ -311,7 +311,6 @@ def clean_player_name(player_name):
         "Stéphane Ruffier[92]": "Stéphane Ruffier",
         "Morgan Schneiderlin[94]": "Morgan Schneiderlin",
         "Edder Delgado[97]": "Edder Delgado",
-        # "Ghasem Haddadifar": "Brown Ideye",
         "Kunle Odunlami": "Odunlami Kunle",
         "Emmanuel Agyemang-Badu": "Emmanuel Badu",
         "Adam Larsen Kwarasey": "Adam Kwarasey",
@@ -337,7 +336,62 @@ def clean_player_name(player_name):
         "Hong Jeong-ho": "Jeong-ho Hong",
         "Kim Seung-gyu": "Seung-gyu Kim",
         "Park Joo-ho[159]": "Joo-ho Park",
-        "Lee Bum-young": "Bum-young Lee"
+        "Lee Bum-young": "Bum-young Lee",
+        "Ghasem Haddadifar": "Ghasem Hadadifar",
+        "Ahmed Elmohamady": "Ahmed El Mohamady",
+        "Mohamed Abdel Shafy": "Mohamed Abdelshafi",
+        "Yury Gazinsky": "Yuriy Gazinskiy",
+        "Aleksandr Yerokhin": "Aleksandr Erokhin",
+        "Ali Al-Bulaihi": "Ali Al-Bulayhi",
+        "Taisir Al-Jassim": "Taiseer Al-Jassam",
+        "Rouzbeh Cheshmi": "Roozbeh Cheshmi",
+        "Mbark Boussoufa": "Moubarak Boussoufa",
+        "Nikola Kalinić[note 2]": "Nikola Kalinić",
+        "Brian Idowu": "Bryan Idowu",
+        "Simeon Nwankwo": "Simy",
+        "Jung Seung-hyun": "Seung-hyun Jung",
+        "Oh Ban-suk": "Ban-suk Oh",
+        "Yun Young-sun": "Young-sun Yun",
+        "Park Joo-ho": "Joo-ho Park",
+        "Ju Se-jong": "Se-jong Ju",
+        "Lee Seung-woo": "Seung-woo Lee",
+        "Hwang Hee-chan": "Hee-chan Hwang",
+        "Kim Min-woo": "Min-woo Kim",
+        "Jung Woo-young": "Woo-young Jung",
+        "Lee Jae-sung": "Jae-sung Lee",
+        "Moon Seon-min": "Seon-min Moon",
+        "Jang Hyun-soo": "Hyun-soo Jang",
+        "Kim Jin-hyeon": "Jin-hyeon Kim",
+        "Go Yo-han": "Yo-han Go",
+        "Jo Hyeon-woo": "Hyeon-woo Jo",
+        "Ghailene Chaalali": "Ghaylen Chaalali",
+        "Kara Mbodji": "Kara Mbodj",
+        "Sebas Méndez": "Sebastián Méndez",
+        "Hassan Al-Haydos": "Hasan Al-Haydos",
+        "Musab Kheder": "Musab Khoder",
+        "Ismaeel Mohammad": "Ismaeel Mohammed",
+        "Mostafa Meshaal": "Mustafa Mashaal",
+        "Shojae Khalilzadeh": "Shoja Khalilzadeh",
+        "Abdulellah Al-Malki": "Abdulelah Al-Malki",
+        "Filip Đuričić": "Filip Djuricic",
+        "Lawrence Ati-Zigi": "Lawrence Ati Zigi",
+        "Yoon Jong-gyu": "Jong-gyu Yoon",
+        "Kim Jin-su": "Jin-su Kim",
+        "Kim Min-jae": "Min-jae Kim",
+        "Hwang In-beom": "In-beom Hwang",
+        "Paik Seung-ho": "Seung-ho Paik",
+        "Cho Gue-sung": "Gue-sung Cho",
+        "Song Bum-keun": "Bum-keun Song",
+        "Son Jun-ho": "Jun-ho Son",
+        "Na Sang-ho": "Sang-ho Na",
+        "Lee Kang-in": "Kang-in Lee",
+        "Kwon Kyung-won": "Kyung-won Kwon",
+        "Kwon Chang-hoon": "Chang-hoon Kwon",
+        "Kim Tae-hwan": "Tae-hwan Kim",
+        "Cho Yu-min": "Yu-min Cho",
+        "Jeong Woo-yeong": "Woo-yeong Jeong",
+        "Song Min-kyu": "Min-kyu Song",
+        "Kim Moon-hwan": "Moon-hwan Kim"
     }
     return replacements.get(player_name, player_name)
 
@@ -462,18 +516,18 @@ def save_market_value_history(player_id, conn):
 # conn = create_database(tournament, 2010)
 # # Pobranie danych drużyn
 # scrap_squad("https://en.wikipedia.org/wiki/2010_FIFA_World_Cup_squads", conn)
-tournament = "world_cup"
-conn = create_database(tournament, 2014)
-# Pobranie danych drużyn
-scrap_squad("https://en.wikipedia.org/wiki/2014_FIFA_World_Cup_squads", conn)
+# tournament = "world_cup"
+# conn = create_database(tournament, 2014)
+# # Pobranie danych drużyn
+# scrap_squad("https://en.wikipedia.org/wiki/2014_FIFA_World_Cup_squads", conn)
 # tournament = "world_cup"
 # conn = create_database(tournament, 2018)
 # # Pobranie danych drużyn
 # scrap_squad("https://en.wikipedia.org/wiki/2018_FIFA_World_Cup_squads", conn)
-# tournament = "world_cup"
-# conn = create_database(tournament, 2022)
-# # Pobranie danych drużyn
-# scrap_squad("https://en.wikipedia.org/wiki/2022_FIFA_World_Cup_squads", conn)
+tournament = "world_cup"
+conn = create_database(tournament, 2022)
+# Pobranie danych drużyn
+scrap_squad("https://en.wikipedia.org/wiki/2022_FIFA_World_Cup_squads", conn)
 
 # Dodanie kolumny Transfermarkt ID
 cursor = conn.cursor()
