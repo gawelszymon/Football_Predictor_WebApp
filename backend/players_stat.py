@@ -31,27 +31,6 @@ def get_player_rating(player_id):
         mean = None
     return mean
 
-def get_player_stat(player_id):
-    stat_url = f"https://www.sofascore.com/api/v1/player/{player_id}/statistics/seasons"
-    response = requests.get(stat_url)
-    data = response.json()
-
-    tournament_id = None
-    season_id = None
-
-    # Przeszukujemy wszystkie turnieje i pobieramy id turnieju oraz sezonu ligowego 23/24
-    for tournament in data.get('uniqueTournamentSeasons', []):
-        if 'id' in tournament['uniqueTournament']:
-            for season in tournament.get('seasons', []):
-                if season['year'] == "23/24" or (season['year'] == "2024" and "MLS" in season['name']):
-                    tournament_id = tournament['uniqueTournament']['id']
-                    season_id = season['id']
-                    break
-        if season_id:
-            break
-
-    return tournament_id, season_id
-
 def get_player_overall_stats(player_id, tournament_id, season_id):
     stats_url = f"https://www.sofascore.com/api/v1/player/{player_id}/unique-tournament/{tournament_id}/season/{season_id}/statistics/overall"
     response = requests.get(stats_url)
@@ -105,21 +84,20 @@ def get_player_stat(player_id):
     data = response.json()
 
     tournament_id = None
-    latest_season_id = None
-    latest_season_year = 0
+    season_id = None
 
-    # Przeszukujemy wszystkie turnieje i pobieramy id turnieju oraz najnowszego sezonu
     for tournament in data.get('uniqueTournamentSeasons', []):
         if 'id' in tournament['uniqueTournament']:
-            tournament_id = tournament['uniqueTournament']['id']
             for season in tournament.get('seasons', []):
-                season_year = int(season['year'].split('/')[0])
-                if season_year > latest_season_year:
-                    latest_season_year = season_year
-                    latest_season_id = season['id']
+                if ("23/24" in season['name'] and season['year'] == "23/24") or (
+                        season['year'] == "2024" and "MLS" in season['name']):
+                    tournament_id = tournament['uniqueTournament']['id']
+                    season_id = season['id']
+                    break
+        if season_id:
             break
 
-    return tournament_id, latest_season_id
+    return tournament_id, season_id
 
 
 def check_player_in_database(conn, name):
@@ -251,7 +229,6 @@ def get_players_info(team, tab):
 
 
 # Wywołanie funkcji dla różnych drużyn
-get_players_info("germany", 4711)
 get_players_info("switzerland", 4699)
 get_players_info("hungary", 4709)
 get_players_info("scotland", 4695)
