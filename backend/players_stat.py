@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+from script import create_database
 
 def get_league_rating(league, country):
     country_name = country.lower()
@@ -9,46 +10,10 @@ def get_league_rating(league, country):
     if response.status_code == 200:
         data = response.json()
         for ranking in data['rankings']:
-            if ranking['uniqueTournament']['name'] == league and ranking['uniqueTournament']['category']['name'].lower() == country_name:
+            if ranking['uniqueTournament']['name'] == league and ranking['uniqueTournament']['category'][
+                'name'].lower() == country_name:
                 league_rating = ranking['points']
     return league_rating
-
-def get_player_rating(player_id):
-    url = f'https://www.sofascore.com/api/v1/player/{player_id}/last-year-summary'
-    response = requests.get(url)
-    player_ratings = []
-    if response.status_code == 200:
-        data = response.json()
-        for value in data['summary']:
-            if value['type'] == "event":
-                player_ratings.append(float(value['value']))
-    rating_sum = sum(player_ratings)
-    try:
-        mean = rating_sum / len(player_ratings)
-    except ZeroDivisionError:
-        mean = None
-    return mean
-
-def get_player_stat(player_id):
-    stat_url = f"https://www.sofascore.com/api/v1/player/{player_id}/statistics/seasons"
-    response = requests.get(stat_url)
-    data = response.json()
-
-    tournament_id = None
-    season_id = None
-
-    # Przeszukujemy wszystkie turnieje i pobieramy id turnieju oraz sezonu ligowego 23/24
-    for tournament in data.get('uniqueTournamentSeasons', []):
-        if 'id' in tournament['uniqueTournament']:
-            for season in tournament.get('seasons', []):
-                if season['year'] == "23/24" or (season['year'] == "2024" and "MLS" in season['name']):
-                    tournament_id = tournament['uniqueTournament']['id']
-                    season_id = season['id']
-                    break
-        if season_id:
-            break
-
-    return tournament_id, season_id
 
 def get_player_overall_stats(player_id, tournament_id, season_id):
     stats_url = f"https://www.sofascore.com/api/v1/player/{player_id}/unique-tournament/{tournament_id}/season/{season_id}/statistics/overall"
@@ -79,8 +44,60 @@ def get_player_overall_stats(player_id, tournament_id, season_id):
 
     }
 
+
+def get_player_rating(player_id):
+    url = f'https://www.sofascore.com/api/v1/player/{player_id}/last-year-summary'
+    response = requests.get(url)
+    player_ratings = []
+    if response.status_code == 200:
+        data = response.json()
+        for value in data['summary']:
+            if value['type'] == "event":
+                player_ratings.append(float(value['value']))
+    rating_sum = sum(player_ratings)
+    try:
+        mean = rating_sum / len(player_ratings)
+    except ZeroDivisionError:
+        mean = None
+    return mean
+
+
+def get_player_stat(player_id):
+    stat_url = f"https://www.sofascore.com/api/v1/player/{player_id}/statistics/seasons"
+    response = requests.get(stat_url)
+    data = response.json()
+
+    tournament_id = None
+    latest_season_id = None
+    latest_season_year = 0
+
+    # Przeszukujemy wszystkie turnieje i pobieramy id turnieju oraz najnowszego sezonu
+    for tournament in data.get('uniqueTournamentSeasons', []):
+        if 'id' in tournament['uniqueTournament']:
+            tournament_id = tournament['uniqueTournament']['id']
+            for season in tournament.get('seasons', []):
+                season_year = int(season['year'].split('/')[0])
+                if season_year > latest_season_year:
+                    latest_season_year = season_year
+                    latest_season_id = season['id']
+            break
+
+    return tournament_id, latest_season_id
+
+
+def check_player_in_database(conn, name):
+    cursor = conn.cursor()
+
+    # Wykonaj zapytanie, aby sprawdzić, czy imię istnieje w bazie danych
+    cursor.execute("SELECT COUNT(*) FROM players WHERE player_name=?", (name,))
+    result = cursor.fetchone()
+
+    # Zwróć True, jeśli imię istnieje w bazie danych, w przeciwnym razie False
+    return result[0] > 0
+
+
 # Funkcja, która scrappuje dane jednego zawodnika
-def get_player_info(player_url):
+def get_player_info(conn, player_url):
     response = requests.get(player_url)
     if response.status_code == 200:
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -129,7 +146,32 @@ def get_player_info(player_url):
         tournament_id, latest_season_id = get_player_stat(player_id)
         stats = get_player_overall_stats(player_id, tournament_id, latest_season_id)
 
-        return name, height, age, league, country_name, position, rating, stats
+        goals = stats['goals']
+        assists = stats['assists']
+        matches = stats['matches']
+        bigchances = stats['bigChancesCreated']
+        keyPasses = stats['keyPasses']
+        saves = stats['saves']
+        tackleswon = stats['tacklesWon']
+        successfulDribbles = stats['successfulDribbles']
+        clearances = stats['clearances']
+
+        if check_player_in_database(conn, name):
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE players
+                SET height = ?, age = ?, league = ?, pos = ?, rating = ?, goals = ?, assists = ?, matches = ?, bigchances = ?, keyPasses = ?, saves = ?, tackleswon = ?, successfulDribbles = ?, clearances = ?
+                WHERE player_name = ?
+            ''', (
+            height, age, league, position, rating, goals, assists, matches, bigchances, keyPasses, saves,
+            tackleswon, successfulDribbles, clearances, name))
+            conn.commit()
+            print(f"Updated player {name} in the database.")
+        else:
+            print(f"Player {name} does not exist in the database.")
+
+        return name, height, age, league, country_name, position, rating, goals, assists, matches, bigchances, keyPasses, saves, tackleswon, successfulDribbles, clearances
+
 
 def get_players_hrefs(team, tab):
     url = f"https://www.sofascore.com/pl/druzyna/pilka-nozna/{team}/{tab}#tab:squad"
@@ -149,45 +191,29 @@ def get_players_hrefs(team, tab):
         print("Nie udało się połączyć ze stroną")
         return None
 
+
 # Funkcja iterująca po wszystkich zawodnikach drużyny i zbierająca ich wszystkie informacje
 def get_players_info(team, tab):
+    tournament = "euro"
+    conn = create_database(tournament, 2024)
+
     hrefs = get_players_hrefs(team, tab)
 
     for href in hrefs:
         try:
-            name, height, age, league, league_country, position, rating, stats = get_player_info(href)
+            name, height, age, league, league_country, position, rating, goals, assists, matches, bigchances, keyPasses, saves, tackleswon, successfulDribbles, clearances = get_player_info(
+                conn, href)
             league_rating = get_league_rating(league, league_country) if league and league_country else "Brak danych"
             print(f"Name: {name}, Height: {height}, Age: {age}, League: {league}, League Country: {league_country}, "
-                  f"League Rating: {league_rating}, Position: {position}, Player Rating: {rating}")
-            print("Stats:")
-            for stat_name, stat_value in stats.items():
-                print(f"  {stat_name}: {stat_value}")
-            print("\n")
+                  f"League Rating: {league_rating}, Position: {position}, Player Rating: {rating}, Goals: {goals}, assists: {assists}, matches: {matches}, bigchances: {bigchances}"
+                  f"keyPasses: {keyPasses}, saves: {saves}, tackleswon: {tackleswon}, successfulDribbles: {successfulDribbles}, clearances: {clearances}")
         except Exception as e:
             print(f"Nie udało się pobrać danych dla zawodnika z URL: {href}. Błąd: {e}")
 
+    conn.close()
+
+
 # Wywołanie funkcji dla różnych drużyn
-get_players_info("germany", 4711)
-get_players_info("switzerland", 4699)
-get_players_info("hungary", 4709)
-get_players_info("scotland", 4695)
-get_players_info("spain", 4698)
-get_players_info("italy", 4707)
-get_players_info("albania", 4690)
-get_players_info("croatia", 4715)
-get_players_info("england", 4713)
-get_players_info("denmark", 4476)
-get_players_info("slovenia", 4484)
-get_players_info("serbia", 6355)
-get_players_info("netherlands", 4705)
-get_players_info("france", 4481)
 get_players_info("poland", 4703)
-get_players_info("austria", 4718)
-get_players_info("romania", 4477)
-get_players_info("slovakia", 4697)
-get_players_info("belgium", 4717)
-get_players_info("ukraine", 4701)
-get_players_info("turkey", 4700)
-get_players_info("portugal", 4704)
-get_players_info("czech-republic", 4714)
-get_players_info("georgia", 4763)
+get_players_info("germany", 4711)
+#dla wszystkich druzyn trzeba to zrobic!!
