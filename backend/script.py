@@ -5,7 +5,6 @@ import sqlite3
 import re
 import json
 
-
 def create_database(tournament_type, year):
     # Utworzenie połączenia z bazą danych SQLite
     conn1 = sqlite3.connect(f'{tournament_type}_teams{year}.db')
@@ -18,6 +17,29 @@ def create_database(tournament_type, year):
         player_name TEXT,
         transfermarkt_id INTEGER
     )
+    ''')
+
+    # Utworzenie tabeli zawodników
+    cursor1.execute('''
+        CREATE TABLE IF NOT EXISTS players (
+            team TEXT,
+            player_name TEXT,
+            transfermarkt_id INTEGER,
+            height INTEGER,
+            age INTEGER,
+            league TEXT,
+            pos CHAR,
+            rating FLOAT,
+            goals INTEGER, 
+            assists INTEGER, 
+            matches INTEGER, 
+            bigchances INTEGER, 
+            keyPasses INTEGER, 
+            saves INTEGER, 
+            tackleswon INTEGER, 
+            successfulDribbles INTEGER, 
+            clearances INTEGER
+        )
     ''')
 
     # Utworzenie tabeli dla historii wartości rynkowej
@@ -34,7 +56,6 @@ def create_database(tournament_type, year):
     # Zatwierdzenie zmian
     conn1.commit()
     return conn1
-
 
 def scrap_squad(urll, conn1):
     url = urll
@@ -56,10 +77,9 @@ def scrap_squad(urll, conn1):
                     # Przetwarzanie nazwisk zawodników
                     player_name = clean_player_name(player_name)
                     teams.append((team_name, player_name))
-                    cursor1 = conn.cursor()
+                    cursor1 = conn1.cursor()  # Poprawka tutaj
                     cursor1.execute("INSERT INTO teams (team, player_name) VALUES (?, ?)", (team_name, player_name))
                     conn1.commit()
-
 
 def clean_player_name(player_name):
     if player_name.endswith("(captain)"):
@@ -176,7 +196,6 @@ def clean_player_name(player_name):
     }
     return replacements.get(player_name, player_name)
 
-
 def get_transfermarkt_id(player_name):
     search_url = f"https://www.transfermarkt.com/schnellsuche/ergebnis/schnellsuche?query={player_name.replace(' ', '+')}"
     response = requests.get(search_url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -195,7 +214,6 @@ def get_transfermarkt_id(player_name):
         print(f"No player profile link found for {player_name}")
         return None
 
-
 def add_column_transfermarkt_id(df, conn):
     cursor = conn.cursor()
     for index, row in df.iterrows():
@@ -205,7 +223,6 @@ def add_column_transfermarkt_id(df, conn):
             cursor.execute("UPDATE teams SET transfermarkt_id = ? WHERE player_name = ?",
                            (transfermarkt_id, player_name))
     conn.commit()
-
 
 def convert_value(value):
     value = value.replace(',', '.')
@@ -218,7 +235,6 @@ def convert_value(value):
     else:
         value = float(value.replace('€', '').strip())
     return value
-
 
 def save_market_value_history(player_id, conn):
     url = f"https://www.transfermarkt.pl/ceapi/marketValueDevelopment/graph/{player_id}"
@@ -276,15 +292,16 @@ def save_market_value_history(player_id, conn):
 # conn = create_database(tournament, 2020)
 # # Pobranie danych drużyn
 # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2020_squads", conn)
-# tournament = "euro"
-# conn = create_database(tournament, 2024)
-# # Pobranie danych drużyn
-# scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2024_squads", conn)
-
-tournament = "world_cup"
-conn = create_database(tournament, 2002)
+tournament = "euro"
+conn = create_database(tournament, 2024)
 # Pobranie danych drużyn
-scrap_squad("https://en.wikipedia.org/wiki/2002_FIFA_World_Cup_squads", conn)
+scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2024_squads", conn)
+conn.close()
+
+# tournament = "world_cup"
+# conn = create_database(tournament, 2002)
+# Pobranie danych drużyn
+# scrap_squad("https://en.wikipedia.org/wiki/2002_FIFA_World_Cup_squads", conn)
 # tournament = "world_cup"
 # conn = create_database(tournament, 2006)
 # # Pobranie danych drużyn
@@ -307,16 +324,16 @@ scrap_squad("https://en.wikipedia.org/wiki/2002_FIFA_World_Cup_squads", conn)
 # scrap_squad("https://en.wikipedia.org/wiki/2022_FIFA_World_Cup_squads", conn)
 
 # Dodanie kolumny Transfermarkt ID
-cursor = conn.cursor()
-cursor.execute("SELECT * FROM teams")
-teams_df = pd.DataFrame(cursor.fetchall(), columns=["Team", "Player Name", "Transfermarkt ID"])
-add_column_transfermarkt_id(teams_df, conn)
-
-# Pobranie historii wartości rynkowej dla każdego zawodnika
-cursor.execute("SELECT DISTINCT transfermarkt_id FROM teams WHERE transfermarkt_id IS NOT NULL")
-player_ids = cursor.fetchall()
-for player_id in player_ids:
-    save_market_value_history(player_id[0], conn)
-
-# Zamknięcie połączenia z bazą danych
-conn.close()
+# cursor = conn.cursor()
+# cursor.execute("SELECT * FROM teams")
+# teams_df = pd.DataFrame(cursor.fetchall(), columns=["Team", "Player Name", "Transfermarkt ID"])
+# add_column_transfermarkt_id(teams_df, conn)
+#
+# # Pobranie historii wartości rynkowej dla każdego zawodnika
+# cursor.execute("SELECT DISTINCT transfermarkt_id FROM teams WHERE transfermarkt_id IS NOT NULL")
+# player_ids = cursor.fetchall()
+# for player_id in player_ids:
+#     save_market_value_history(player_id[0], conn)
+#
+# # Zamknięcie połączenia z bazą danych
+# conn.close()
