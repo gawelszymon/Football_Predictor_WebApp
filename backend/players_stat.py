@@ -15,6 +15,43 @@ def get_league_rating(league, country):
                 league_rating = ranking['points']
     return league_rating
 
+def get_player_rating(player_id):
+    url = f'https://www.sofascore.com/api/v1/player/{player_id}/last-year-summary'
+    response = requests.get(url)
+    player_ratings = []
+    if response.status_code == 200:
+        data = response.json()
+        for value in data['summary']:
+            if value['type'] == "event":
+                player_ratings.append(float(value['value']))
+    rating_sum = sum(player_ratings)
+    try:
+        mean = rating_sum / len(player_ratings)
+    except ZeroDivisionError:
+        mean = None
+    return mean
+
+def get_player_stat(player_id):
+    stat_url = f"https://www.sofascore.com/api/v1/player/{player_id}/statistics/seasons"
+    response = requests.get(stat_url)
+    data = response.json()
+
+    tournament_id = None
+    season_id = None
+
+    # Przeszukujemy wszystkie turnieje i pobieramy id turnieju oraz sezonu ligowego 23/24
+    for tournament in data.get('uniqueTournamentSeasons', []):
+        if 'id' in tournament['uniqueTournament']:
+            for season in tournament.get('seasons', []):
+                if season['year'] == "23/24" or (season['year'] == "2024" and "MLS" in season['name']):
+                    tournament_id = tournament['uniqueTournament']['id']
+                    season_id = season['id']
+                    break
+        if season_id:
+            break
+
+    return tournament_id, season_id
+
 def get_player_overall_stats(player_id, tournament_id, season_id):
     stats_url = f"https://www.sofascore.com/api/v1/player/{player_id}/unique-tournament/{tournament_id}/season/{season_id}/statistics/overall"
     response = requests.get(stats_url)
@@ -214,6 +251,28 @@ def get_players_info(team, tab):
 
 
 # Wywołanie funkcji dla różnych drużyn
+get_players_info("germany", 4711)
+get_players_info("switzerland", 4699)
+get_players_info("hungary", 4709)
+get_players_info("scotland", 4695)
+get_players_info("spain", 4698)
+get_players_info("italy", 4707)
+get_players_info("albania", 4690)
+get_players_info("croatia", 4715)
+get_players_info("england", 4713)
+get_players_info("denmark", 4476)
+get_players_info("slovenia", 4484)
+get_players_info("serbia", 6355)
+get_players_info("netherlands", 4705)
+get_players_info("france", 4481)
 get_players_info("poland", 4703)
 get_players_info("germany", 4711)
-#dla wszystkich druzyn trzeba to zrobic!!
+get_players_info("austria", 4718)
+get_players_info("romania", 4477)
+get_players_info("slovakia", 4697)
+get_players_info("belgium", 4717)
+get_players_info("ukraine", 4701)
+get_players_info("turkey", 4700)
+get_players_info("portugal", 4704)
+get_players_info("czech-republic", 4714)
+get_players_info("georgia", 4763)
