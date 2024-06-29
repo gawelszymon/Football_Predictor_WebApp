@@ -1,4 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Football Match Predictor. EURO 2024 EDITION</h1>
+<h1>EURO 2024 Tournament Bracket</h1>
+
+<div id="bracket-container" class="bracket-container">
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='scripts.js') }}"></script>
 {% endblock %}

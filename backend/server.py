@@ -10,6 +10,10 @@ CORS(app)
 def index():
     return render_template('index.html')
 
+@app.route('/groups')
+def groups():
+    return render_template('groups.html')
+
 @app.route('/matches')
 def matches():
     return render_template('matches.html')

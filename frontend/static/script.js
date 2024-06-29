@@ -1,10 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     const team1Select = document.getElementById('team1');
     const team2Select = document.getElementById('team2');
-    const groupsContainer = document.getElementById('groups-container');
     let teamsData = [];
 
-    // Fetch and display group data
     fetch('http://127.0.0.1:5000/euro_groups')
         .then(response => {
             if (!response.ok) {
@@ -14,16 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             teamsData = data;
-            console.log('Fetched data:', data); // Log the fetched data for debugging
-
-            const groups = {};
-
-            data.forEach(item => {
-                if (!groups[item.group]) {
-                    groups[item.group] = [];
-                }
-                groups[item.group].push(item.team);
-            });
+            console.log('Fetched data:', data); 
 
             // Populate team1 select
             const uniqueTeams = [...new Set(data.map(item => item.team))];
@@ -34,32 +23,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 option1.textContent = team;
                 team1Select.appendChild(option1);
             });
-
-            // Populate groups section
-            for (const group in groups) {
-                const groupDiv = document.createElement('div');
-                groupDiv.classList.add('group');
-                const groupTitle = document.createElement('h2');
-                groupTitle.textContent = group;
-                groupDiv.appendChild(groupTitle);
-
-                const flagsDiv = document.createElement('div');
-                flagsDiv.classList.add('flags');
-
-                groups[group].forEach(team => {
-                    const img = document.createElement('img');
-                    img.src = `/static/flags/${team.toLowerCase().replace(/\s/g, '')}.png`; // Ensure the filename matches your setup
-                    img.alt = team;                                                         //required to add static due to static files like css js img are served from static directory    
-                    flagsDiv.appendChild(img);
-                });
-
-                groupDiv.appendChild(flagsDiv);
-                groupsContainer.appendChild(groupDiv);
-            }
         })
         .catch(error => {
             console.error('Error fetching data:', error);
-            document.getElementById('result').textContent = 'Wystąpił błąd podczas ładowania danych o grupach.';
+            document.getElementById('result').textContent = 'Wystąpił błąd podczas ładowania danych o drużynach.';
         });
 
     team1Select.addEventListener('change', function() {
@@ -67,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedGroup = teamsData.find(item => item.team === selectedTeam).group;
         const teamsInSameGroup = teamsData.filter(item => item.group === selectedGroup && item.team !== selectedTeam);
 
-        team2Select.innerHTML = ''; // Clear existing options
+        team2Select.innerHTML = ''; 
 
         teamsInSameGroup.forEach(teamData => {
             const option2 = document.createElement('option');
