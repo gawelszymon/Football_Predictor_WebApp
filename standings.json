@@ -1,0 +1,182 @@
+[
+    {
+        "group": "Euro, Group A",
+        "team": "Germany",
+        "points": 7,
+        "rating": 1646.78
+    },
+    {
+        "group": "Euro, Group A",
+        "team": "Switzerland",
+        "points": 5,
+        "rating": 1617.24
+    },
+    {
+        "group": "Euro, Group A",
+        "team": "Hungary",
+        "points": 3,
+        "rating": 1529
+    },
+    {
+        "group": "Euro, Group A",
+        "team": "Scotland",
+        "points": 1,
+        "rating": 1497.18
+    },
+    {
+        "group": "Euro, Group B",
+        "team": "Spain",
+        "points": 9,
+        "rating": 1729.92
+    },
+    {
+        "group": "Euro, Group B",
+        "team": "Italy",
+        "points": 4,
+        "rating": 1724.37
+    },
+    {
+        "group": "Euro, Group B",
+        "team": "Croatia",
+        "points": 2,
+        "rating": 1728.3
+    },
+    {
+        "group": "Euro, Group B",
+        "team": "Albania",
+        "points": 1,
+        "rating": 1379.4
+    },
+    {
+        "group": "Euro, Group C",
+        "team": "England",
+        "points": 5,
+        "rating": 1787.88
+    },
+    {
+        "group": "Euro, Group C",
+        "team": "Denmark",
+        "points": 3,
+        "rating": 1610.76
+    },
+    {
+        "group": "Euro, Group C",
+        "team": "Slovenia",
+        "points": 3,
+        "rating": 1429.74
+    },
+    {
+        "group": "Euro, Group C",
+        "team": "Serbia",
+        "points": 2,
+        "rating": 1514.76
+    },
+    {
+        "group": "Euro, Group D",
+        "team": "Austria",
+        "points": 6,
+        "rating": 1560.03
+    },
+    {
+        "group": "Euro, Group D",
+        "team": "France",
+        "points": 5,
+        "rating": 1837.47
+    },
+    {
+        "group": "Euro, Group D",
+        "team": "Netherlands",
+        "points": 4,
+        "rating": 1746.66
+    },
+    {
+        "group": "Euro, Group D",
+        "team": "Poland",
+        "points": 1,
+        "rating": 1541.49
+    },
+    {
+        "group": "Euro, Group E",
+        "team": "Romania",
+        "points": 4,
+        "rating": 1462.35
+    },
+    {
+        "group": "Euro, Group E",
+        "team": "Belgium",
+        "points": 4,
+        "rating": 1797.98
+    },
+    {
+        "group": "Euro, Group E",
+        "team": "Slovakia",
+        "points": 4,
+        "rating": 1467.77
+    },
+    {
+        "group": "Euro, Group E",
+        "team": "Ukraine",
+        "points": 4,
+        "rating": 1565.37
+    },
+    {
+        "group": "Euro, Group F",
+        "team": "Portugal",
+        "points": 6,
+        "rating": 1747.04
+    },
+    {
+        "group": "Euro, Group F",
+        "team": "Turkey",
+        "points": 6,
+        "rating": 1493.38
+    },
+    {
+        "group": "Euro, Group F",
+        "team": "Georgia",
+        "points": 4,
+        "rating": 1338.91
+    },
+    {
+        "group": "Euro, Group F",
+        "team": "Czech Republic",
+        "points": 1,
+        "rating": 1506.23
+    },
+    {
+        "group": "Third-placed teams",
+        "team": "Netherlands",
+        "points": 4,
+        "rating": 1746.66
+    },
+    {
+        "group": "Third-placed teams",
+        "team": "Georgia",
+        "points": 4,
+        "rating": 1338.91
+    },
+    {
+        "group": "Third-placed teams",
+        "team": "Slovakia",
+        "points": 4,
+        "rating": 1467.77
+    },
+    {
+        "group": "Third-placed teams",
+        "team": "Slovenia",
+        "points": 3,
+        "rating": 1429.74
+    },
+    {
+        "group": "Third-placed teams",
+        "team": "Hungary",
+        "points": 3,
+        "rating": 1529
+    },
+    {
+        "group": "Third-placed teams",
+        "team": "Croatia",
+        "points": 2,
+        "rating": 1728.3
+    }
+]
