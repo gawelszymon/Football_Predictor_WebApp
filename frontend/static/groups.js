@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const groupsContainer = document.getElementById('groups-container');
     let teamsData = [];
 
-    // Fetch and display group data
     fetch('http://127.0.0.1:5000/euro_groups')
         .then(response => {
             if (!response.ok) {

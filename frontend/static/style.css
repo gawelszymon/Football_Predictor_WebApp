@@ -164,3 +164,93 @@ button:hover {
     max-width: 500px;
     width: 100%;
 }
+.matches {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.match {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 10px 0;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center; /* Center the text */
+}
+
+.match h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #2286ea;
+}
+
+.match p {
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+.match ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.match ul li {
+    background: #e9ecef;
+    margin: 5px 0;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.match h3 {
+    font-size: 16px;
+    margin-top: 10px;
+    color: #2c69dc;
+}
+
+/* Flag icon styles */
+.flag-icon {
+    width: 25px;
+    height: 25px;
+    margin: 0 5px;
+    vertical-align: middle;
+    border-radius: 50%; /* Make the flags circular */
+    border: 1px solid #ddd;
+}
+.score {
+    font-size: 24px;
+    font-weight: bold;
+    padding: 10px;
+    margin: 10px 0;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    display: inline-block;
+    background-color: #eef7ff;
+    color: #007bff;
+}
+.team-select-header {
+    font-size: 20px;
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.team-select {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    background-color: #ffffff;
+    color: #007bff;
+    outline: none;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.team-select:hover,
+.team-select:focus {
+    background-color: #ffffff;
+    border-color: #0056b3;
+}
