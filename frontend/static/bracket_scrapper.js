@@ -9,6 +9,7 @@ axios.get(url)
         const $ = cheerio.load(html);
 
         const matchDetails = [];
+        const matchResult = [];
 
         // Zmodyfikowany selektor CSS, aby odnosił się do konkretnej tabeli
         $('#mw-content-text > div.mw-content-ltr.mw-parser-output > div:nth-child(164) > table tbody tr td').each((index, element) => {
@@ -25,16 +26,49 @@ axios.get(url)
                 || date.includes('Zwycięzca meczu 48') || date.includes('Zwycięzca meczu 49') || date.includes('Zwycięzca meczu 50')) {
                 matchDetails.push(date);
             }
+
         });
 
-        const brackets = {};
+        $('td[rowspan="2"]').each((index, element) => {
+            // Tutaj możesz przetwarzać elementy wewnątrz wskazanej tabeli
+            let date = $(element).text().trim();
+
+            if (date === '0' || date === '1' || date === '2' || date === '3' || date === '4' || date === '5' ||
+                date === '6' || date === '7' || date === '8' || date === '9' || date === '' || date === '' || date === 'B1' || date === 'F3' || 
+                date === 'A1' || date === 'C2' || date === 'F1' || date === 'C3' ||
+                date === 'D2' || date === 'E2' || date === 'E1' || date === 'D3' || date === 'D1' || date === 'F2' ||
+                date === 'C1' || date === 'E3' || date === 'A2' || date === 'B2') {
+
+                if (date === '') {
+                    date = 'nwm';
+                }
+
+                matchResult.push(date);
+            }
+
+        });
+
+        const matchesBrackets = {};
+        const resultsBrackets = {};
 
         for (let i = 0; i < matchDetails.length; i++) {
-            const variableName = `team${i + 1}`;
-            brackets[variableName] = matchDetails[i];
+            const a = `team${i + 1}`;
+            matchesBrackets[a] = matchDetails[i];
         }
 
-        console.log(brackets);
+        for (let i = 0; i < matchResult.length; i = i+1) {
+            const b = `result${i + 1}`;
+            resultsBrackets[b] = matchResult[i];
+        }
+        
+        delete resultsBrackets['result17'];
+        delete resultsBrackets['result34'];
+        delete resultsBrackets['result47'];
+        delete resultsBrackets['result64'];
+
+
+        console.log(matchesBrackets);
+        console.log(resultsBrackets);
     })
     .catch(error => {
         console.error('Error fetching the webpage:', error);
