@@ -1,0 +1,65 @@
+Grupa A
+	Piątek, 14 czerwca:
+		21:00: Niemcy vs. Szkocja (Monachium)
+	Sobota, 15 czerwca:
+		15:00: Węgry vs. Szwajcaria (Stuttgart)
+	Wtorek, 18 czerwca:
+		18:00: Niemcy vs. Węgry (Berlin)
+	Środa, 19 czerwca:
+		21:00: Szkocja vs. Szwajcaria (Dortmund)
+	Niedziela, 23 czerwca:
+		21:00: Szwajcaria vs. Niemcy (Frankfurt)
+		21:00: Szkocja vs. Węgry (Stuttgart)
+Grupa B
+	Sobota, 15 czerwca:
+		18:00: Hiszpania vs. Chorwacja (Berlin)
+		21:00: Włochy vs. Albania (Dortmund)
+	Środa, 19 czerwca:
+		15:00: Chorwacja vs. Albania (Hamburg)
+	Czwartek, 20 czerwca:
+		21:00: Hiszpania vs. Włochy (Gelsenkirchen)
+	Poniedziałek, 24 czerwca:
+		21:00: Albania vs. Hiszpania (Düsseldorf)
+		21:00: Chorwacja vs. Włochy (Lipsk)
+Grupa C
+	Niedziela, 16 czerwca:
+		18:00: Słowenia vs. Dania (Stuttgart)
+		21:00: Serbia vs. Anglia (Gelsenkirchen)
+	Czwartek, 20 czerwca:
+		15:00: Słowenia vs. Serbia (Monachium)
+		18:00: Dania vs. Anglia (Frankfurt)
+	Wtorek, 25 czerwca:
+		21:00: Anglia vs. Słowenia (Kolonia)
+		21:00: Dania vs. Serbia (Monachium)
+Grupa D
+	Niedziela, 16 czerwca:
+		15:00: Polska vs. Holandia (Hamburg)
+	Poniedziałek, 17 czerwca:
+		21:00: Austria vs. Francja (Düsseldorf)
+	Piątek, 21 czerwca:
+		18:00: Polska vs. Austria (Berlin)
+		21:00: Holandia vs. Francja (Lipsk)
+	Wtorek, 25 czerwca:
+		18:00: Francja vs. Polska (Dortmund)
+		18:00: Holandia vs. Austria (Berlin)
+Grupa E
+	Poniedziałek, 17 czerwca:
+		15:00: Rumunia vs. Ukraina (Monachium)
+		18:00: Belgia vs. Słowacja (Frankfurt)
+	Piątek, 21 czerwca:
+		15:00: Słowacja vs. Ukraina (Düsseldorf)
+	Sobota, 22 czerwca:
+		21:00: Belgia vs. Rumunia (Kolonia)
+	Środa, 26 czerwca:
+		18:00: Ukraina vs. Belgia (Stuttgart)
+		18:00: Słowacja vs. Rumunia (Frankfurt)
+Grupa F
+	Wtorek, 18 czerwca:
+		18:00: Turcja vs. Gruzja (Dortmund)
+		21:00: Portugalia vs. Czechy (Lipsk)
+	Sobota, 22 czerwca:
+		15:00: Gruzja vs. Czechy (Hamburg)
+		18:00: Turcja vs. Portugalia (Dortmund)
+	Środa, 26 czerwca:
+		21:00: Czechy vs. Turcja (Hamburg)
+21:00: Gruzja vs. Portugalia (Gelsenkirchen)
