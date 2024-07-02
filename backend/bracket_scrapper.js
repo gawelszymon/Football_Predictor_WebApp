@@ -189,42 +189,42 @@ axios.get(url)
 
         //console.log(Object.values(teamBrackets)[0])
 
-        fs.writeFile('backend/one_eight_teamBrackets.json', JSON.stringify(one_eight_teamBrackets, null, 2), err => {
+        fs.writeFile('frontend/static/one_eight_teamBrackets.json', JSON.stringify(one_eight_teamBrackets, null, 2), err => {
             if (err) throw err;
             console.log('Json data saved');
         });
 
-        fs.writeFile('backend/one_four_teamBrackets.json', JSON.stringify(one_four_teamBrackets, null, 2), err => {
+        fs.writeFile('frontend/static/one_four_teamBrackets.json', JSON.stringify(one_four_teamBrackets, null, 2), err => {
             if (err) throw err;
             console.log('Json data saved');
         });
 
-        fs.writeFile('backend/one_two_teamBrackets.json', JSON.stringify(one_two_teamBrackets, null, 2), err => {
+        fs.writeFile('frontend/static/one_two_teamBrackets.json', JSON.stringify(one_two_teamBrackets, null, 2), err => {
             if (err) throw err;
             console.log('Json data saved');
         });
 
-        fs.writeFile('backend/final_teamBrackets.json', JSON.stringify(final_teamBrackets, null, 2), err => {
+        fs.writeFile('frontend/static/final_teamBrackets.json', JSON.stringify(final_teamBrackets, null, 2), err => {
             if (err) throw err;
             console.log('Json data saved');
         });
 
-        fs.writeFile('backend/one_eight_resultBrackets.json', JSON.stringify(one_eight_Result, null, 2), err => {
+        fs.writeFile('frontend/static/one_eight_resultBrackets.json', JSON.stringify(one_eight_Result, null, 2), err => {
             if (err) throw err;
             console.log('Json data saved');
         });
 
-        fs.writeFile('backend/one_four_resultBrackets.json', JSON.stringify(one_four_Result, null, 2), err => {
+        fs.writeFile('frontend/static/one_four_resultBrackets.json', JSON.stringify(one_four_Result, null, 2), err => {
             if (err) throw err;
             console.log('Json data saved');
         });
 
-        fs.writeFile('backend/one_two_resultBrackets.json', JSON.stringify(one_two_Result, null, 2), err => {
+        fs.writeFile('frontend/static/one_two_resultBrackets.json', JSON.stringify(one_two_Result, null, 2), err => {
             if (err) throw err;
             console.log('Json data saved');
         });
 
-        fs.writeFile('backend/final_resultBrackets.json', JSON.stringify(final_Result, null, 2), err => {
+        fs.writeFile('frontend/static/final_resultBrackets.json', JSON.stringify(final_Result, null, 2), err => {
             if (err) throw err;
             console.log('Json data saved');
         });
