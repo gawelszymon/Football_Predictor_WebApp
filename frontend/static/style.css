@@ -182,7 +182,6 @@ button:hover {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     text-align: center; /* Center the text */
 }
-
 .match h2 {
     font-size: 18px;
     margin-bottom: 10px;
@@ -221,6 +220,7 @@ button:hover {
     border-radius: 50%; /* Make the flags circular */
     border: 1px solid #ddd;
 }
+
 .score {
     font-size: 24px;
     font-weight: bold;
@@ -232,6 +232,7 @@ button:hover {
     background-color: #eef7ff;
     color: #007bff;
 }
+
 .team-select-header {
     font-size: 20px;
     color: #007bff;
@@ -270,4 +271,25 @@ button:hover {
 .match {
     margin: 10px;
     text-align: center;
+    background-color: #f8f9fa; /* Light background for matches */
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.match div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.match img {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%; 
+    margin-right: 8px;
+    object-fit: cover;
 }

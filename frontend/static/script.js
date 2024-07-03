@@ -12,9 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             teamsData = data;
-            console.log('Fetched data:', data); 
+            console.log('Fetched data:', data);
 
-            // Populate team1 select
             const uniqueTeams = [...new Set(data.map(item => item.team))];
 
             uniqueTeams.forEach(team => {
@@ -31,15 +30,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     team1Select.addEventListener('change', function() {
         const selectedTeam = team1Select.value;
-        const selectedGroup = teamsData.find(item => item.team === selectedTeam).group;
-        const teamsInSameGroup = teamsData.filter(item => item.group === selectedGroup && item.team !== selectedTeam);
 
-        team2Select.innerHTML = ''; 
+        // Update team2Select to exclude the selectedTeam
+        team2Select.innerHTML = '';
 
-        teamsInSameGroup.forEach(teamData => {
+        const remainingTeams = teamsData.filter(item => item.team !== selectedTeam).map(item => item.team);
+
+        remainingTeams.forEach(team => {
             const option2 = document.createElement('option');
-            option2.value = teamData.team;
-            option2.textContent = teamData.team;
+            option2.value = team;
+            option2.textContent = team;
             team2Select.appendChild(option2);
         });
     });
