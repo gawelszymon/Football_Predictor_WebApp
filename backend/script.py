@@ -1,10 +1,10 @@
+import asyncio
+import aiohttp
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import sqlite3
 import re
-import json
-
 
 def create_database(tournament_type, year):
     # Utworzenie połączenia z bazą danych SQLite
@@ -36,29 +36,43 @@ def create_database(tournament_type, year):
     return conn1
 
 
-def scrap_squad(urll, conn1):
-    url = urll
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, "html.parser")
-    teams = []
-    tables = soup.find_all("table", {"class": "sortable"})
+def generate_team_id(team_name):
+    return abs(hash(team_name))
 
-    for table in tables:
-        header = table.find_previous("h3")
-        if header:
-            team_name = header.find("span", {"class": "mw-headline"}).text
-            rows = table.find_all("tr")
-            for row in rows:
-                th = row.find("th")
-                cells = row.find_all("td")
-                if th and cells:
-                    player_name = th.get_text(strip=True)
-                    # Przetwarzanie nazwisk zawodników
-                    player_name = clean_player_name(player_name)
-                    teams.append((team_name, player_name))
-                    cursor1 = conn.cursor()
-                    cursor1.execute("INSERT INTO teams (team, player_name) VALUES (?, ?)", (team_name, player_name))
-                    conn1.commit()
+
+# Bufor dla przechowywania już pobranych transfermarkt_id
+player_id_cache = {}
+
+
+async def fetch(session, url):
+    async with session.get(url) as response:
+        return await response.text()
+
+
+async def get_transfermarkt_id(session, player_name):
+    if player_name in player_id_cache:
+        print(f"Using cached ID for {player_name}: {player_id_cache[player_name]}")
+        return player_id_cache[player_name]
+
+    search_url = f"https://www.transfermarkt.com/schnellsuche/ergebnis/schnellsuche?query={player_name.replace(' ', '+')}"
+    response_text = await fetch(session, search_url)
+
+    soup = BeautifulSoup(response_text, "html.parser")
+    player_link = soup.find('a', href=re.compile(r'/profil/spieler/\d+'))
+
+    if player_link:
+        profile_url = player_link['href']
+        player_id = re.search(r'/profil/spieler/(\d+)', profile_url).group(1)
+        player_id_cache[player_name] = int(player_id)
+        return int(player_id)
+    else:
+        print(f"No player profile link found for {player_name}")
+        return None
+
+
+async def fetch_transfermarkt_ids(session, player_names):
+    tasks = [get_transfermarkt_id(session, player_name) for player_name in player_names]
+    return await asyncio.gather(*tasks)
 
 
 def clean_player_name(player_name):
@@ -375,59 +389,80 @@ def clean_player_name(player_name):
         "Abdulellah Al-Malki": "Abdulelah Al-Malki",
         "Filip Đuričić": "Filip Djuricic",
         "Lawrence Ati-Zigi": "Lawrence Ati Zigi",
-        "Yoon Jong-gyu": "Jong-gyu Yoon",
-        "Kim Jin-su": "Jin-su Kim",
-        "Kim Min-jae": "Min-jae Kim",
-        "Hwang In-beom": "In-beom Hwang",
-        "Paik Seung-ho": "Seung-ho Paik",
-        "Cho Gue-sung": "Gue-sung Cho",
-        "Song Bum-keun": "Bum-keun Song",
-        "Son Jun-ho": "Jun-ho Son",
-        "Na Sang-ho": "Sang-ho Na",
-        "Lee Kang-in": "Kang-in Lee",
-        "Kwon Kyung-won": "Kyung-won Kwon",
-        "Kwon Chang-hoon": "Chang-hoon Kwon",
-        "Kim Tae-hwan": "Tae-hwan Kim",
-        "Cho Yu-min": "Yu-min Cho",
-        "Jeong Woo-yeong": "Woo-yeong Jeong",
-        "Song Min-kyu": "Min-kyu Song",
-        "Kim Moon-hwan": "Moon-hwan Kim"
-    }
+         "Yoon Jong-gyu": "Jong-gyu Yoon",
+         "Kim Jin-su": "Jin-su Kim",
+         "Kim Min-jae": "Min-jae Kim",
+         "Hwang In-beom": "In-beom Hwang",
+         "Paik Seung-ho": "Seung-ho Paik",
+         "Cho Gue-sung": "Gue-sung Cho",
+         "Song Bum-keun": "Bum-keun Song",
+         "Son Jun-ho": "Jun-ho Son",
+         "Na Sang-ho": "Sang-ho Na",
+         "Lee Kang-in": "Kang-in Lee",
+         "Kwon Kyung-won": "Kyung-won Kwon",
+         "Kwon Chang-hoon": "Chang-hoon Kwon",
+         "Kim Tae-hwan": "Tae-hwan Kim",
+         "Cho Yu-min": "Yu-min Cho",
+         "Jeong Woo-yeong": "Woo-yeong Jeong",
+         "Song Min-kyu": "Min-kyu Song",
+         "Kim Moon-hwan": "Moon-hwan Kim",
+         "Munir Mohamedi": "Munir El Kajoui"
+     }
     return replacements.get(player_name, player_name)
 
 
-def get_transfermarkt_id(player_name):
-    search_url = f"https://www.transfermarkt.com/schnellsuche/ergebnis/schnellsuche?query={player_name.replace(' ', '+')}"
-    response = requests.get(search_url, headers={'User-Agent': 'Mozilla/5.0'})
-
-    if response.status_code != 200:
-        print(f"Failed to retrieve search results for {player_name}")
-        return None
-
+def scrap_squad(url, conn1):
+    response = requests.get(url)
     soup = BeautifulSoup(response.content, "html.parser")
-    player_link = soup.find('a', href=re.compile(r'/profil/spieler/\d+'))
-    if player_link:
-        profile_url = player_link['href']
-        player_id = re.search(r'/profil/spieler/(\d+)', profile_url).group(1)
-        return int(player_id)
-    elif player_name == "Pak Nam-chol I":
-        return 68565
-    elif player_name == "Pak Nam-chol II":
-        return 114610
-    else:
-        print(f"No player profile link found for {player_name}")
-        return None
+    teams = []
+    tables = soup.find_all("table", {"class": "sortable"})
+
+    for table in tables:
+        header = table.find_previous("h3")
+        if header:
+            team_name = header.text.strip()
+            if "Player representation" in team_name or "Average age" in team_name or "Coaches representation" in team_name:
+                continue  # Pomijamy sekcje, które nie są drużynami
+            print(f"Przetwarzanie drużyny: {team_name}")
+            rows = table.find_all("tr")
+            for row in rows:
+                th = row.find("th")
+                cells = row.find_all("td")
+                if th and cells:
+                    player_name = th.get_text(strip=True)
+                    # Przetwarzanie nazwisk zawodników
+                    player_name = clean_player_name(player_name)
+                    teams.append((team_name, player_name))
+                    cursor1 = conn1.cursor()
+                    cursor1.execute("INSERT INTO teams (team, player_name) VALUES (?, ?)", (team_name, player_name))
+                    conn1.commit()
+        else:
+            print("Nie znaleziono nagłówka 'h3' przed tabelą.")
 
 
 def add_column_transfermarkt_id(df, conn):
     cursor = conn.cursor()
-    for index, row in df.iterrows():
-        player_name = row["Player Name"]
-        transfermarkt_id = get_transfermarkt_id(player_name)
-        if transfermarkt_id:
-            cursor.execute("UPDATE teams SET transfermarkt_id = ? WHERE player_name = ?",
-                           (transfermarkt_id, player_name))
-    conn.commit()
+
+    # Zbierz unikalne nazwiska zawodników z dataframe
+    player_names = df["Player Name"].unique()
+
+    # Oczyszczanie nazw zawodników przed zapytaniem do transfermarkt
+    cleaned_player_names = [clean_player_name(name) for name in player_names]
+
+    # Asynchroniczne pobieranie transfermarkt_id
+    async def main():
+        async with aiohttp.ClientSession() as session:
+            player_ids = await fetch_transfermarkt_ids(session, cleaned_player_names)
+            for player_name, transfermarkt_id in zip(player_names, player_ids):
+                if transfermarkt_id:
+                    cursor.execute("UPDATE teams SET transfermarkt_id = ? WHERE player_name = ?",
+                                   (transfermarkt_id, player_name))
+                    print(f"Added Transfermarkt ID for {player_name}: {transfermarkt_id}")
+                else:
+                    print(f"Skipping player {player_name} due to missing Transfermarkt ID")
+            conn.commit()
+
+    asyncio.run(main())
 
 
 def convert_value(value):
@@ -443,103 +478,134 @@ def convert_value(value):
     return value
 
 
-def save_market_value_history(player_id, conn):
+async def fetch_market_value_history(session, player_id, conn):
     url = f"https://www.transfermarkt.pl/ceapi/marketValueDevelopment/graph/{player_id}"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
         "Referer": f"https://www.transfermarkt.pl/robert-lewandowski/marktwertverlauf/spieler/{player_id}"
     }
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        try:
-            data = response.json()
-            cursor = conn.cursor()
-            for item in data['list']:
-                market_value = item['mw']
-                date_mv = item['datum_mw']
-                club = item['verein']
-                if market_value == "-":
-                    continue
-                market_value_converted = convert_value(market_value)
-                cursor.execute("INSERT INTO market_value_history (player_id, value, date, club) VALUES (?, ?, ?, ?)",
-                               (player_id, market_value_converted, date_mv, club))
-            conn.commit()
-        except json.JSONDecodeError:
-            print("Błąd dekodowania JSON: Odpowiedź nie jest poprawnym JSON.")
-            print("Treść odpowiedzi:")
-            print(response.text)
-        except ValueError as ve:
-            print(f"Błąd konwersji wartości: {ve}")
-    else:
-        print(f"Błąd: Otrzymano status odpowiedzi {response.status_code}")
-        print("Treść odpowiedzi:")
-        print(response.text)
 
-# tournament = "euro"
-# conn = create_database(tournament, 2000)
-# # Pobranie danych drużyn
-# scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2000_squads", conn)
-# tournament = "euro"
-# conn = create_database(tournament, 2004)
-# # Pobranie danych drużyn
-# scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2004_squads", conn)
-# tournament = "euro"
-# conn = create_database(tournament, 2008)
-# # Pobranie danych drużyn
-# scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2008_squads", conn)
-# tournament = "euro"
-# conn = create_database(tournament, 2012)
-# # Pobranie danych drużyn
-# scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2012_squads", conn)
-# tournament = "euro"
-# conn = create_database(tournament, 2016)
-# # Pobranie danych drużyn
-# scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2016_squads", conn)
-# tournament = "euro"
-# conn = create_database(tournament, 2020)
-# # Pobranie danych drużyn
-# scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2020_squads", conn)
-# tournament = "euro"
-# conn = create_database(tournament, 2024)
-# # Pobranie danych drużyn
-# scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2024_squads", conn)
+    try:
+        async with session.get(url, headers=headers) as response:
+            if response.status == 200:
+                data = await response.json()
+                if 'list' in data:
+                    records = []
+                    for item in data['list']:
+                        market_value = item.get('mw', '-')
+                        date_mv = item.get('datum_mw')
+                        club = item.get('verein', '')
 
-# tournament = "world_cup"
-# conn = create_database(tournament, 2002)
-# # Pobranie danych drużyn
-# scrap_squad("https://en.wikipedia.org/wiki/2002_FIFA_World_Cup_squads", conn)
-# tournament = "world_cup"
-# conn = create_database(tournament, 2006)
-# # Pobranie danych drużyn
-# scrap_squad("https://en.wikipedia.org/wiki/2006_FIFA_World_Cup_squads", conn)
-# tournament = "world_cup"
-# conn = create_database(tournament, 2010)
-# # Pobranie danych drużyn
-# scrap_squad("https://en.wikipedia.org/wiki/2010_FIFA_World_Cup_squads", conn)
-# tournament = "world_cup"
-# conn = create_database(tournament, 2014)
-# # Pobranie danych drużyn
-# scrap_squad("https://en.wikipedia.org/wiki/2014_FIFA_World_Cup_squads", conn)
-# tournament = "world_cup"
-# conn = create_database(tournament, 2018)
-# # Pobranie danych drużyn
-# scrap_squad("https://en.wikipedia.org/wiki/2018_FIFA_World_Cup_squads", conn)
-tournament = "world_cup"
-conn = create_database(tournament, 2022)
-# Pobranie danych drużyn
-scrap_squad("https://en.wikipedia.org/wiki/2022_FIFA_World_Cup_squads", conn)
+                        if market_value == "-":
+                            continue
 
-# Dodanie kolumny Transfermarkt ID
-cursor = conn.cursor()
-cursor.execute("SELECT * FROM teams")
-teams_df = pd.DataFrame(cursor.fetchall(), columns=["Team", "Player Name", "Transfermarkt ID"])
-add_column_transfermarkt_id(teams_df, conn)
+                        try:
+                            market_value_converted = convert_value(market_value)
+                            records.append((player_id, market_value_converted, date_mv, club))
+                        except ValueError as ve:
+                            print(f"Error converting market value '{market_value}': {ve}")
 
-# Pobranie historii wartości rynkowej dla każdego zawodnika
-cursor.execute("SELECT DISTINCT transfermarkt_id FROM teams WHERE transfermarkt_id IS NOT NULL")
-player_ids = cursor.fetchall()
-for player_id in player_ids:
-    save_market_value_history(player_id[0], conn)
+                    if records:
+                        cursor = conn.cursor()
+                        cursor.executemany("INSERT INTO market_value_history (player_id, value, date, club) VALUES (?, ?, ?, ?)", records)
+                        conn.commit()
+                        print(f"Inserted {len(records)} records for player ID {player_id}")
 
-# Zamknięcie połączenia z bazą danych
-conn.close()
+            else:
+                print(f"Failed to retrieve data for player ID {player_id}. Status code: {response.status}")
+
+    except Exception as e:
+        print(f"An error occurred while processing player ID {player_id}: {e}")
+
+async def save_market_value_history_async(player_ids, conn):
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_market_value_history(session, player_id, conn) for player_id in player_ids]
+        await asyncio.gather(*tasks)
+
+def save_market_value_history(player_ids, conn):
+    asyncio.run(save_market_value_history_async(player_ids, conn))
+
+# Uruchomienie całego procesu
+# Uruchomienie całego procesu
+def run_scraping_process():
+    tournament = "world_cup1"
+    conn = create_database(tournament, 2022)
+    # Pobranie danych drużyn
+    scrap_squad("https://en.wikipedia.org/wiki/2022_FIFA_World_Cup_squads", conn)
+    # # tournament = "euro"
+    # # conn = create_database(tournament, 2000)
+    # # # Pobranie danych drużyn
+    # # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2000_squads", conn)
+    # # tournament = "euro"
+    # # conn = create_database(tournament, 2004)
+    # # # Pobranie danych drużyn
+    # # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2004_squads", conn)
+    # # tournament = "euro"
+    # # conn = create_database(tournament, 2008)
+    # # # Pobranie danych drużyn
+    # # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2008_squads", conn)
+    # # tournament = "euro"
+    # # conn = create_database(tournament, 2012)
+    # # # Pobranie danych drużyn
+    # # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2012_squads", conn)
+    # # tournament = "euro"
+    # # conn = create_database(tournament, 2016)
+    # # # Pobranie danych drużyn
+    # # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2016_squads", conn)
+    # # tournament = "euro"
+    # # conn = create_database(tournament, 2020)
+    # # # Pobranie danych drużyn
+    # # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2020_squads", conn)
+    # # tournament = "euro"
+    # # conn = create_database(tournament, 2024)
+    # # # Pobranie danych drużyn
+    # # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2024_squads", conn)
+    #
+    # # tournament = "world_cup"
+    # # conn = create_database(tournament, 2002)
+    # # # Pobranie danych drużyn
+    # # scrap_squad("https://en.wikipedia.org/wiki/2002_FIFA_World_Cup_squads", conn)
+    # # tournament = "world_cup"
+    # # conn = create_database(tournament, 2006)
+    # # # Pobranie danych drużyn
+    # # scrap_squad("https://en.wikipedia.org/wiki/2006_FIFA_World_Cup_squads", conn)
+    # # tournament = "world_cup"
+    # # conn = create_database(tournament, 2010)
+    # # # Pobranie danych drużyn
+    # # scrap_squad("https://en.wikipedia.org/wiki/2010_FIFA_World_Cup_squads", conn)
+    # # tournament = "world_cup"
+    # # conn = create_database(tournament, 2014)
+    # # # Pobranie danych drużyn
+    # # scrap_squad("https://en.wikipedia.org/wiki/2014_FIFA_World_Cup_squads", conn)
+    # # tournament = "world_cup"
+    # # conn = create_database(tournament, 2018)
+    # # # Pobranie danych drużyn
+    # # scrap_squad("https://en.wikipedia.org/wiki/2018_FIFA_World_Cup_squads", conn)
+    # tournament = "world_cup1"
+    # conn = create_database(tournament, 2022)
+    # # Pobranie danych drużyn
+    # scrap_squad("https://en.wikipedia.org/wiki/2022_FIFA_World_Cup_squads", conn)
+
+    # Pobieranie listy drużyn i zawodników z bazy danych
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM teams")
+    teams_df = pd.DataFrame(cursor.fetchall(), columns=["Team", "Player Name", "Transfermarkt ID"])
+
+    # Dodanie kolumny Transfermarkt ID
+    add_column_transfermarkt_id(teams_df, conn)
+
+    # Pobieranie historii wartości rynkowej dla każdego zawodnika
+    cursor.execute("SELECT DISTINCT transfermarkt_id FROM teams WHERE transfermarkt_id IS NOT NULL")
+    player_ids = cursor.fetchall()
+
+    # player_ids is a list of tuples, convert it to a flat list
+    player_ids = [pid[0] for pid in player_ids]
+
+    # Call the function with the list of player IDs
+    save_market_value_history(player_ids, conn)
+
+    # Zamknięcie połączenia z bazą danych
+    conn.close()
+
+# Wywołanie funkcji głównej, aby uruchomić cały proces
+run_scraping_process()
