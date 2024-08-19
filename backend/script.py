@@ -507,6 +507,24 @@ def parse_polish_date(date_str):
     # Convert the date string to datetime object
     return datetime.datetime.strptime(date_str, "%d %m %Y")
 
+def add_club_hash_column_to_market_value_history(conn):
+    cursor = conn.cursor()
+
+    # Sprawdzenie, czy kolumna 'club_hash' już istnieje
+    cursor.execute("PRAGMA table_info(market_value_history)")
+    columns = [info[1] for info in cursor.fetchall()]
+
+    if 'club_hash' not in columns:
+        # Jeśli kolumna nie istnieje, dodajemy ją
+        cursor.execute('''
+            ALTER TABLE market_value_history
+            ADD COLUMN club_hash TEXT
+        ''')
+        conn.commit()
+        print("Kolumna 'club_hash' została dodana do tabeli 'market_value_history'.")
+    else:
+        print("Kolumna 'club_hash' już istnieje w tabeli 'market_value_history'.")
+
 async def fetch_market_value_history(session, player_id, conn, event_date):
     url = f"https://www.transfermarkt.pl/ceapi/marketValueDevelopment/graph/{player_id}"
     headers = {
@@ -544,17 +562,26 @@ async def fetch_market_value_history(session, player_id, conn, event_date):
                                     'player_id': player_id,
                                     'value': market_value,
                                     'date': date_mv_obj,
-                                    'club': club
+                                    'club': club,
+                                    'club_hash': generate_team_id(club)  # Generate club hash
                                 }
 
                     if closest_record:
                         try:
                             market_value_converted = convert_value(closest_record['value'])
                             cursor = conn.cursor()
-                            cursor.execute("INSERT INTO market_value_history (player_id, value, date, club) VALUES (?, ?, ?, ?)",
-                                           (closest_record['player_id'], market_value_converted, closest_record['date'].strftime('%Y-%m-%d'), closest_record['club']))
+                            cursor.execute("""
+                                INSERT INTO market_value_history (player_id, value, date, club, club_hash) 
+                                VALUES (?, ?, ?, ?, ?)
+                            """, (
+                                closest_record['player_id'],
+                                market_value_converted,
+                                closest_record['date'].strftime('%Y-%m-%d'),
+                                closest_record['club'],
+                                closest_record['club_hash']
+                            ))
                             conn.commit()
-                            print(f"Inserted record for player ID {player_id}: {market_value_converted} on {closest_record['date'].strftime('%Y-%m-%d')}")
+                            print(f"Inserted record for player ID {player_id}: {market_value_converted} on {closest_record['date'].strftime('%Y-%m-%d')}, club hash: {closest_record['club_hash']}")
 
                         except ValueError as ve:
                             print(f"Error converting market value '{closest_record['value']}': {ve}")
@@ -573,87 +600,464 @@ async def save_market_value_history_async(player_ids, conn, event_date):
 def save_market_value_history(player_ids, conn, event_date):
     asyncio.run(save_market_value_history_async(player_ids, conn, event_date))
 
+
+
+
+
+
+
+
+club_name_mapping = {
+    "Leverkusen": "Bayer 04 Leverkusen",
+    "Man City": "Manchester City",
+    "Arsenal": "FC Arsenal",
+    "Newcastle": "Newcastle United",
+    "Sheffield United": "Sheffield United",
+    "Brighton": "Brighton & Hove Albion",
+    "Monaco": "AS Monaco",
+    "PSV": "PSV Eindhoven",
+    "Valencia": "Valencia CF",
+    "Ajax": "Ajax Amsterdam",
+    "Dortmund": "Borussia Dortmund",
+    "Juventus": "Juventus Turyn",
+    "Luton": "Luton Town",
+    "Fulham": "FC Fulham",
+    "Leeds": "Leeds United",
+    "Chelsea": "Chelsea FC",
+    "Milan": "AC Milan",
+    "Barcelona": "FC Barcelona",
+    "Feyenoord": "Feyenoord Rotterdam",
+    "Lille": "LOSC Lille",
+    "Rennes": "Stade Rennais FC",
+    "Brentford": "FC Brentford",
+    "Gladbach": "Borussia Mönchengladbach",
+    "Watford": "FC Watford",
+    "Tottenham": "Tottenham Hotspur",
+    "Swansea": "Swansea City",
+    "Lyon": "Olympique Lyon",
+    "Villarreal": "Villarreal CF",
+    "Atlético": "Atlético Madryt",
+    "Sevilla": "Sevilla FC",
+    "Betis": "Real Betis Balompié",
+    "Paris SG": "FC Paris Saint-Germain",
+    "Roma": "AS Roma",
+    "Atalanta": "Atalanta BC",
+    "Genk": "KRC Genk",
+    "Wolves": "Wolverhampton Wanderers",
+    "Forest": "Nottingham Forest",
+    "Celtic": "Celtic Glasgow",
+    "Wolfsburg": "VfL Wolfsburg",
+    "Celta": "Celta de Vigo",
+    "Napoli": "SSC Napoli",
+    "Bournemouth": "AFC Bournemouth",
+    "Aston Villa": "Aston Villa",
+    "Burnley": "FC Burnley",
+    "Inter": "Inter Mediolan",
+    "Lech": "Lech Poznań",
+    "Lens": "RC Lens",
+    "Fiorentina": "AC Fiorentina",
+    "Sampdoria": "UC Sampdoria",
+    "Nice": "OGC Nice",
+    "Cardiff": "Cardiff City",
+    "Union Berlin": "1.FC Union Berlin",
+    "RB Leipzig": "RasenBallsport Leipzig",
+    "Hertha": "Hertha BSC",
+    "Man United": "Manchester United",
+    "Real Madrid": "Real Madryt",
+    "Bayern": "Bayern Monachium",
+    "Liverpool": "FC Liverpool",
+    "Frankfurt": "Eintracht Frankfurt",
+    "Galatasaray": "Galatasaray",
+    "Verona": "Hellas Verona",
+    "Legia": "Legia Warszawa",
+    "Millonarios FC": "Millonarios FC",
+    "Marseille": "Olympique Marseille",
+    "West Ham": "West Ham United",
+    "Freiburg": "SC Freiburg",
+    "Köln": "1.FC Köln",
+    "Real Sociedad": "Real Sociedad",
+    "Southampton": "FC Southampton",
+    "Sporting": "Sporting CP",
+    "Schalke": "FC Schalke 04",
+    "Stuttgart": "VfB Stuttgart",
+    "Bilbao": "Athletic Bilbao",
+    "Hoffenheim": "TSG 1899 Hoffenheim",
+    "Fenerbahçe": "Fenerbahce",
+    "Beşiktaş": "Besiktas JK",
+    "Anderlecht": "RSC Anderlecht",
+    "Basel": "FC Basel 1893",
+    "Dinamo Zagreb": "GNK Dinamo Zagrzeb",
+    "Torino": "Torino FC",
+    "Rangers": "Glasgow Rangers",
+    "Зенит": "Zenit Petersburg",
+    "Osasuna": "CA Osasuna",
+    "Salzburg": "Red Bull Salzburg",
+    "Toulouse": "FC Toulouse",
+    "Reims": "Stade Reims",
+    "Nantes": "FC Nantes",
+    "Bristol City": "Bristol City",
+    "Getafe": "Getafe CF",
+    "Benevento": "Benevento Calcio",
+    "Montpellier": "Montpellier HSC",
+    "Trabzonspor": "Trabzonspor",
+    "Espanyol": "RCD Espanyol",
+    "Burgos": "Burgos CF",
+    "Gent": "KAA Gent",
+    "Udinese": "Udinese Calcio",
+    "Standard": "Standard Liège",
+    "Valladolid": "Real Valladolid CF",
+    "Chicago Fire FC": "Chicago Fire FC",
+    "Rayo Vallecano": "Rayo Vallecano",
+    "ΠΑΟΚ": "PAOK Saloniki"
+}
+
+kluby = {
+    "Royal Antwerpia FC": "Royal Antwerpia FC",
+    "FC Augsburg": "FC Augsburg",
+    "Al-Duhail SC": "Al-Duhail SC",
+    "Al-Rayyan SC": "Al-Rayyan SC",
+    "Los Angeles FC": "Los Angeles FC",
+    "Al-Wakrah SC": "Al-Wakrah SC",
+    "Al-Sadd SC": "Al-Sadd SC",
+    "Santos Laguna": "Santos Laguna",
+    "Al-Arabi SC": "Al-Arabi SC",
+    "Independiente del Valle": "Independiente del Valle",
+    "Queens Park Rangers": "Queens Park Rangers",
+    "FC Everton": "FC Everton",
+    "Vitoria Guimarães SC": "Vitoria Guimarães SC",
+    "Leicester City": "Leicester City",
+    "Al-Gharafa SC": "Al-Gharafa SC",
+    "FC Reading": "FC Reading",
+    "Amiens SC": "Amiens SC",
+    "Pafos FC": "Pafos FC",
+    "LDU Quito": "LDU Quito",
+    "FC Sao Paulo": "FC Sao Paulo",
+    "Club León FC": "Club León FC",
+    "Seattle Sounders FC": "Seattle Sounders FC",
+    "SC Heerenveen": "SC Heerenveen",
+    "Persepolis FC": "Persepolis FC",
+    "US Salernitana 1919": "US Salernitana 1919",
+    "Esteghlal FC": "Esteghlal FC",
+    "AEK Ateny": "AEK Ateny",
+    "FC Brügge": "FC Brügge",
+    "Sepahan FC": "Sepahan FC",
+    "Imbabura SC": "Imbabura SC",
+    "Omonia Nikozja": "Omonia Nikozja",
+    "SD Aucas": "SD Aucas",
+    "R Charleroi SC": "R Charleroi SC",
+    "Al-Ahli SC": "Al-Ahli SC",
+    "Tractor Sazi FC": "Tractor Sazi FC",
+    "Nashville SC": "Nashville SC",
+    "SD Ponferradina": "SD Ponferradina",
+    "Shabab Al-Ahli Club": "Shabab Al-Ahli Club",
+    "FC Dallas": "FC Dallas",
+    "Kayserispor": "Kayserispor",
+    "Inter Miami CF": "Inter Miami CF",
+    "New York Red Bulls": "New York Red Bulls",
+    "Vejle Boldklub": "Vejle Boldklub",
+    "ESTAC Troyes": "ESTAC Troyes",
+    "Norwich City": "Norwich City",
+    "Swindon Town": "Swindon Town",
+    "Dundee United FC": "Dundee United FC",
+    "Atlanta United FC": "Atlanta United FC",
+    "Airbus UK Broughton": "Airbus UK Broughton",
+    "Milton Keynes Dons": "Milton Keynes Dons",
+    "New York City FC": "New York City FC",
+    "CA River Plate": "CA River Plate",
+    "CF Pachuca": "CF Pachuca",
+    "CA Newell's Old Boys": "CA Newell's Old Boys",
+    "AFC Wimbledon": "AFC Wimbledon",
+    "FC Juárez": "FC Juárez",
+    "CF América": "CF América",
+    "US Cremonese": "US Cremonese",
+    "Spezia Calcio": "Spezia Calcio",
+    "CF Monterrey": "CF Monterrey",
+    "Huddersfield Town": "Huddersfield Town",
+    "Houston Dynamo FC": "Houston Dynamo FC",
+    "Deportivo Guadalajara": "Deportivo Guadalajara",
+    "FC Portsmouth": "FC Portsmouth",
+    "Al-Nassr FC": "Al-Nassr FC",
+    "Al-Hilal SFC": "Al-Hilal SFC",
+    "Al-Shabab FC": "Al-Shabab FC",
+    "Birmingham City": "Birmingham City",
+    "Charlotte FC": "Charlotte FC",
+    "FC Kopenhaga": "FC Kopenhaga",
+    "Pogoń Szczecin": "Pogoń Szczecin",
+    "Al-Fateh SC": "Al-Fateh SC",
+    "Melbourne City FC": "Melbourne City FC",
+    "Heart of Midlothian FC": "Heart of Midlothian FC",
+    "Cádiz CF": "Cádiz CF",
+    "Brescia Calcio": "Brescia Calcio",
+    "Al-Ittihad Club": "Al-Ittihad Club",
+    "AFC Sunderland": "AFC Sunderland",
+    "FC Middlesbrough": "FC Middlesbrough",
+    "St. Mirren FC": "St. Mirren FC",
+    "FC St. Pauli": "FC St. Pauli",
+    "Central Coast Mariners": "Central Coast Mariners",
+    "Adelaide United": "Adelaide United",
+    "Bröndby IF": "Bröndby IF",
+    "Columbus Crew": "Columbus Crew",
+    "Odense Boldklub": "Odense Boldklub",
+    "SV Schalding-Heining": "SV Schalding-Heining",
+    "Stoke City": "Stoke City",
+    "Fagiano Okayama": "Fagiano Okayama",
+    "Sydney FC": "Sydney FC",
+    "Kuwait SC": "Kuwait SC",
+    "CS Sfaxien": "CS Sfaxien",
+    "Ferencvárosi TC": "Ferencvárosi TC",
+    "FC Lorient": "FC Lorient",
+    "Etoile Sportive du Sahel": "Etoile Sportive du Sahel",
+    "Esperance Tunis": "Esperance Tunis",
+    "Millonarios FC": "Millonarios FC",
+    "US Monastir": "US Monastir",
+    "Atromitos Ateny": "Atromitos Ateny",
+    "Club Africain Tunis": "Club Africain Tunis",
+    "El Ahly Kair": "El Ahly Kair",
+    "Al-Ettifaq FC": "Al-Ettifaq FC",
+    "SM Caen": "SM Caen",
+    "Zamalek SC": "Zamalek SC",
+    "CD Leganés": "CD Leganés",
+    "VfL Bochum": "VfL Bochum",
+    "Fortuna Düsseldorf": "Fortuna Düsseldorf",
+    "VV St. Truiden": "VV St. Truiden",
+    "Cercle Brügge": "Cercle Brügge",
+    "Shimizu S-Pulse": "Shimizu S-Pulse",
+    "Nagoya Grampus": "Nagoya Grampus",
+    "Shonan Bellmare": "Shonan Bellmare",
+    "Urawa Red Diamonds": "Urawa Red Diamonds",
+    "Kawasaki Frontale": "Kawasaki Frontale",
+    "Deportivo Saprissa": "Deportivo Saprissa",
+    "FC Cincinnati": "FC Cincinnati",
+    "Municipal Grecia": "Municipal Grecia",
+    "SV Werder Bremen": "SV Werder Bremen",
+    "KMSK Deinze": "KMSK Deinze",
+    "Minnesota United FC": "Minnesota United FC",
+    "Vancouver Whitecaps FC": "Vancouver Whitecaps FC",
+    "GD Chaves": "GD Chaves",
+    "Austin FC": "Austin FC",
+    "CF Montréal": "CF Montréal",
+    "Toronto FC": "Toronto FC",
+    "St. Johnstone FC": "St. Johnstone FC",
+    "RC Strasbourg Alsace": "RC Strasbourg Alsace",
+    "US Sassuolo": "US Sassuolo",
+    "Panetolikos GFS": "Panetolikos GFS",
+    "Real Salt Lake City": "Real Salt Lake City",
+    "CD Lugo": "CD Lugo",
+    "NK Osijek": "NK Osijek",
+    "Al-Wehda FC": "Al-Wehda FC",
+    "AD Guanacasteca": "AD Guanacasteca",
+    "Wydad Casablanca": "Wydad Casablanca",
+    "Qatar SC": "Qatar SC",
+    "Angers SCO": "Angers SCO",
+    "UNAM Pumas": "UNAM Pumas",
+    "FC Tokyo": "FC Tokyo",
+    "Sociedade Esportiva Palmeiras": "Sociedade Esportiva Palmeiras",
+    "Stade Brestois 29": "Stade Brestois 29",
+    "SSC Bari": "SSC Bari",
+    "Colombe Sportive du Dja et Lobo": "Colombe Sportive du Dja et Lobo",
+    "Olympiakos Pireus": "Olympiakos Pireus",
+    "Aris Saloniki": "Aris Saloniki",
+    "Abha Club": "Abha Club",
+    "Coton Sport FC de Garoua": "Coton Sport FC de Garoua",
+    "Lazio Rzym": "Lazio Rzym",
+    "RCD Mallorca": "RCD Mallorca",
+    "Crvena Zvezda Belgrad": "Crvena Zvezda Belgrad",
+    "UD Almería": "UD Almería",
+    "SC Braga": "SC Braga",
+    "Al-Tai FC": "Al-Tai FC",
+    "Dynamo Moskwa": "Dynamo Moskwa",
+    "Philadelphia Union": "Philadelphia Union",
+    "HNK Hajduk Split": "HNK Hajduk Split",
+    "Hannover 96": "Hannover 96",
+    "Shanghai Shenhua": "Shanghai Shenhua",
+    "KV Mechelen": "KV Mechelen",
+    "1.FSV Mainz 05": "1.FSV Mainz 05",
+    "FC St. Gallen 1879": "FC St. Gallen 1879",
+    "FC Bologna": "FC Bologna",
+    "BSC Young Boys": "BSC Young Boys",
+    "FC Luzern": "FC Luzern",
+    "KAS Eupen": "KAS Eupen",
+    "Asante Kotoko SC": "Asante Kotoko SC",
+    "Clermont Foot 63": "Clermont Foot 63",
+    "AJ Auxerre": "AJ Auxerre",
+    "Jeonbuk Hyundai Motors": "Jeonbuk Hyundai Motors",
+    "Gimcheon Sangmu": "Gimcheon Sangmu",
+    "Gamba Osaka": "Gamba Osaka",
+    "Daegu FC": "Daegu FC",
+    "FC Seoul": "FC Seoul",
+    "Daejeon Hana Citizen": "Daejeon Hana Citizen",
+    "Ulsan Hyundai": "Ulsan Hyundai",
+    "Hearts of Oak": "Hearts of Oak",
+    "FC Porto": "FC Porto",
+    "Club Nacional": "Club Nacional",
+    "Flamengo Rio de Janeiro": "Flamengo Rio de Janeiro",
+    "CA Independiente": "CA Independiente",
+    "Orlando City SC": "Orlando City SC",
+    "CA Vélez Sarsfield": "CA Vélez Sarsfield",
+    "Club Athletico Paranaense": "Club Athletico Paranaense",
+    "Los Angeles Galaxy": "Los Angeles Galaxy",
+    "FC Lugano": "FC Lugano",
+    "Shandong Taishan": "Shandong Taishan",
+    "Chicago Fire FC": "Chicago Fire FC",
+    "Benfika Lizbona": "Benfika Lizbona"
+}
+
+def fetch_elo_ranking_from_web(date):
+    url = f"http://clubelo.com/{date}/Ranking"
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.text
+    else:
+        print(f"Błąd podczas pobierania ELO rankingów dla {date}: {response.status_code}")
+        return None
+
+
+def parse_elo_ranking(html_content):
+    soup = BeautifulSoup(html_content, "html.parser")
+    ranking_table = soup.find("table", {"class": "ranking"})  # Znajdź tabelę z rankingiem
+
+    elo_data = []
+    if ranking_table:
+        rows = ranking_table.find_all("tr")
+        for row in rows[1:]:  # Pomijamy pierwszy wiersz, który zawiera nagłówki
+            cols = row.find_all("td")
+            if len(cols) >= 4:
+                rank = cols[0].text.strip()
+
+                # Pobierz nazwę klubu z elementu <a> wewnątrz <td class="l">
+                club_name_element = cols[1].find("a")
+                club_name = club_name_element.text.strip() if club_name_element else "N/A"
+
+                elo_rating = cols[2].text.strip()  # ELO w trzeciej kolumnie
+
+                print(f"Przetwarzanie: {club_name}, ELO: {elo_rating}")
+
+                # Dodaj dane do listy
+                elo_data.append({
+                    "rank": rank,
+                    "club_name": club_name,
+                    "elo_rating": float(elo_rating)
+                })
+    else:
+        print("Nie znaleziono tabeli z rankingiem")
+
+    return elo_data
+
+
+def update_market_value_history_with_elo(elo_data, conn):
+    cursor = conn.cursor()
+    for club in elo_data:
+        club_name = club['club_name']
+        elo_rating = club['elo_rating']
+
+        # Generate club hash directly from the normalized club name
+        normalized_club_name = club_name_mapping.get(club_name, club_name)
+        normalized_hash = generate_team_id(normalized_club_name)
+        print(f"Klub: {normalized_club_name}, hash: {normalized_hash}")
+
+        # Search using the club hash
+        sql_select = '''
+            SELECT club_hash FROM market_value_history
+            WHERE club_hash = ?
+        '''
+        cursor.execute(sql_select, (normalized_hash,))
+        result = cursor.fetchone()
+
+        if result:
+            # Update ELO rating in the database
+            sql_update = '''
+                UPDATE market_value_history
+                SET elo_rating = ?
+                WHERE club_hash = ?
+            '''
+            print(f"SQL Update: {sql_update} with values ({elo_rating}, {normalized_hash})")
+            cursor.execute(sql_update, (elo_rating, normalized_hash))
+            print(f"Zaktualizowano klub: {club_name} z ELO: {elo_rating}")
+        else:
+            print(f"Nie znaleziono klubu: {club_name} (szukano: {normalized_club_name})")
+
+    conn.commit()
+
+
+def add_elo_column_to_market_value_history(conn):
+    cursor = conn.cursor()
+
+    # Sprawdzenie, czy kolumna 'elo_rating' już istnieje
+    cursor.execute("PRAGMA table_info(market_value_history)")
+    columns = [info[1] for info in cursor.fetchall()]
+
+    if 'elo_rating' not in columns:
+        # Jeśli kolumna nie istnieje, dodajemy ją
+        cursor.execute('''
+            ALTER TABLE market_value_history
+            ADD COLUMN elo_rating REAL
+        ''')
+        conn.commit()
+        print("Kolumna 'elo_rating' została dodana do tabeli 'market_value_history'.")
+    else:
+        print("Kolumna 'elo_rating' już istnieje w tabeli 'market_value_history'.")
+
+
+
+
+
+
+
 # Uruchomienie całego procesu
 # Uruchomienie całego procesu
 def run_scraping_process():
-    tournament = "world_cup1"
-    conn = create_database(tournament, 2022)
-    # Pobranie danych drużyn
-    scrap_squad("https://en.wikipedia.org/wiki/2022_FIFA_World_Cup_squads", conn)
-    # # tournament = "euro"
-    # # conn = create_database(tournament, 2000)
-    # # # Pobranie danych drużyn
-    # # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2000_squads", conn)
-    # # tournament = "euro"
-    # # conn = create_database(tournament, 2004)
-    # # # Pobranie danych drużyn
-    # # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2004_squads", conn)
-    # # tournament = "euro"
-    # # conn = create_database(tournament, 2008)
-    # # # Pobranie danych drużyn
-    # # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2008_squads", conn)
-    # # tournament = "euro"
-    # # conn = create_database(tournament, 2012)
-    # # # Pobranie danych drużyn
-    # # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2012_squads", conn)
-    # # tournament = "euro"
-    # # conn = create_database(tournament, 2016)
-    # # # Pobranie danych drużyn
-    # # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2016_squads", conn)
-    # # tournament = "euro"
-    # # conn = create_database(tournament, 2020)
-    # # # Pobranie danych drużyn
-    # # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2020_squads", conn)
-    # # tournament = "euro"
-    # # conn = create_database(tournament, 2024)
-    # # # Pobranie danych drużyn
-    # # scrap_squad("https://en.wikipedia.org/wiki/UEFA_Euro_2024_squads", conn)
-    #
-    # # tournament = "world_cup"
-    # # conn = create_database(tournament, 2002)
-    # # # Pobranie danych drużyn
-    # # scrap_squad("https://en.wikipedia.org/wiki/2002_FIFA_World_Cup_squads", conn)
-    # # tournament = "world_cup"
-    # # conn = create_database(tournament, 2006)
-    # # # Pobranie danych drużyn
-    # # scrap_squad("https://en.wikipedia.org/wiki/2006_FIFA_World_Cup_squads", conn)
-    # # tournament = "world_cup"
-    # # conn = create_database(tournament, 2010)
-    # # # Pobranie danych drużyn
-    # # scrap_squad("https://en.wikipedia.org/wiki/2010_FIFA_World_Cup_squads", conn)
-    # # tournament = "world_cup"
-    # # conn = create_database(tournament, 2014)
-    # # # Pobranie danych drużyn
-    # # scrap_squad("https://en.wikipedia.org/wiki/2014_FIFA_World_Cup_squads", conn)
-    # # tournament = "world_cup"
-    # # conn = create_database(tournament, 2018)
-    # # # Pobranie danych drużyn
-    # # scrap_squad("https://en.wikipedia.org/wiki/2018_FIFA_World_Cup_squads", conn)
-    # tournament = "world_cup1"
-    # conn = create_database(tournament, 2022)
-    # # Pobranie danych drużyn
-    # scrap_squad("https://en.wikipedia.org/wiki/2022_FIFA_World_Cup_squads", conn)
+    try:
+        tournament = "world_cup1"
+        conn = create_database(tournament, 2022)
+        print("Baza danych została utworzona.")
 
-    # Pobieranie listy drużyn i zawodników z bazy danych
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM teams")
-    teams_df = pd.DataFrame(cursor.fetchall(), columns=["Team ID", "Team", "Player Name", "Transfermarkt ID"])
+        # Dodanie kolumny hashy klubów (jeśli nie została wcześniej dodana)
+        add_club_hash_column_to_market_value_history(conn)
+        print("Kolumna hashów klubów została dodana (jeśli nie istniała).")
 
-    # Dodanie kolumny Transfermarkt ID
-    add_column_transfermarkt_id(teams_df, conn)
+        # Dodanie kolumny ELO do tabeli market_value_history (jeśli nie została wcześniej dodana)
+        add_elo_column_to_market_value_history(conn)
+        print("Kolumna ELO została dodana (jeśli nie istniała).")
 
-    # Pobieranie historii wartości rynkowej dla każdego zawodnika
-    cursor.execute("SELECT DISTINCT transfermarkt_id FROM teams WHERE transfermarkt_id IS NOT NULL")
-    player_ids = cursor.fetchall()
+        # Pobranie danych drużyn
+        scrap_squad("https://en.wikipedia.org/wiki/2022_FIFA_World_Cup_squads", conn)
+        print("Dane drużyn zostały pobrane i zapisane do bazy danych.")
 
-    # player_ids is a list of tuples, convert it to a flat list
-    player_ids = [pid[0] for pid in player_ids]
+        # Pobieranie listy drużyn i zawodników z bazy danych
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM teams")
+        teams_df = pd.DataFrame(cursor.fetchall(), columns=["Team ID", "Team", "Player Name", "Transfermarkt ID"])
 
-    # Call the function with the list of player IDs
-    save_market_value_history(player_ids, conn, "20-11-2022")
+        # Dodanie kolumny Transfermarkt ID
+        add_column_transfermarkt_id(teams_df, conn)
+        print("Kolumna Transfermarkt ID została dodana i zaktualizowana.")
 
-    # Zamknięcie połączenia z bazą danych
-    conn.close()
+        # Pobieranie historii wartości rynkowej dla każdego zawodnika
+        cursor.execute("SELECT DISTINCT transfermarkt_id FROM teams WHERE transfermarkt_id IS NOT NULL")
+        player_ids = cursor.fetchall()
+
+        # player_ids is a list of tuples, convert it to a flat list
+        player_ids = [pid[0] for pid in player_ids]
+
+        # Call the function with the list of player IDs
+        save_market_value_history(player_ids, conn, "20-11-2022")
+        print("Historia wartości rynkowej została pobrana i zapisana.")
+
+        # Pobierz dane ELO z konkretnej daty
+        date = "2022-11-20"
+        html_content = fetch_elo_ranking_from_web(date)
+
+        if html_content:
+            elo_data = parse_elo_ranking(html_content)
+            update_market_value_history_with_elo(elo_data, conn)
+            print("Dane ELO zostały zaktualizowane.")
+
+        # Zamknięcie połączenia z bazą danych
+        conn.close()
+        print("Połączenie z bazą danych zostało zamknięte.")
+
+    except Exception as e:
+        print(f"Wystąpił błąd: {e}")
 
 # Wywołanie funkcji głównej, aby uruchomić cały proces
 run_scraping_process()
