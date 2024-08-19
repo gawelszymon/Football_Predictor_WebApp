@@ -23,7 +23,7 @@
         </library>
       </libraries>
     </data-source>
-    <data-source source="LOCAL" name="world_cup1_teams2022" uuid="2ba62a2d-7b0e-4b86-88f4-cc7c40e44a4d">
+    <data-source source="LOCAL" name="world_cup1_teams2022" uuid="f24fef08-3022-44ec-a2cb-331f9b51853d">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>

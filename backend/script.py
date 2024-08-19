@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import aiohttp
 import requests
 from bs4 import BeautifulSoup
@@ -14,9 +15,11 @@ def create_database(tournament_type, year):
     # Utworzenie tabeli dla drużyn
     cursor1.execute('''
     CREATE TABLE IF NOT EXISTS teams (
+        team_id INTEGER,
         team TEXT,
         player_name TEXT,
-        transfermarkt_id INTEGER
+        transfermarkt_id INTEGER,
+        PRIMARY KEY (team_id, player_name)
     )
     ''')
 
@@ -424,6 +427,10 @@ def scrap_squad(url, conn1):
             if "Player representation" in team_name or "Average age" in team_name or "Coaches representation" in team_name:
                 continue  # Pomijamy sekcje, które nie są drużynami
             print(f"Przetwarzanie drużyny: {team_name}")
+
+            # Generowanie team_id
+            team_id = generate_team_id(team_name)
+
             rows = table.find_all("tr")
             for row in rows:
                 th = row.find("th")
@@ -432,9 +439,9 @@ def scrap_squad(url, conn1):
                     player_name = th.get_text(strip=True)
                     # Przetwarzanie nazwisk zawodników
                     player_name = clean_player_name(player_name)
-                    teams.append((team_name, player_name))
+                    teams.append((team_id, team_name, player_name))
                     cursor1 = conn1.cursor()
-                    cursor1.execute("INSERT INTO teams (team, player_name) VALUES (?, ?)", (team_name, player_name))
+                    cursor1.execute("INSERT INTO teams (team_id, team, player_name) VALUES (?, ?, ?)", (team_id, team_name, player_name))
                     conn1.commit()
         else:
             print("Nie znaleziono nagłówka 'h3' przed tabelą.")
@@ -457,13 +464,11 @@ def add_column_transfermarkt_id(df, conn):
                 if transfermarkt_id:
                     cursor.execute("UPDATE teams SET transfermarkt_id = ? WHERE player_name = ?",
                                    (transfermarkt_id, player_name))
-                    print(f"Added Transfermarkt ID for {player_name}: {transfermarkt_id}")
                 else:
                     print(f"Skipping player {player_name} due to missing Transfermarkt ID")
             conn.commit()
 
     asyncio.run(main())
-
 
 def convert_value(value):
     value = value.replace(',', '.')
@@ -477,8 +482,32 @@ def convert_value(value):
         value = float(value.replace('€', '').strip())
     return value
 
+# Map Polish month abbreviations to month numbers
+MONTH_MAP = {
+    'sty': '01',
+    'lut': '02',
+    'mar': '03',
+    'kwi': '04',
+    'maj': '05',
+    'cze': '06',
+    'lip': '07',
+    'sie': '08',
+    'wrz': '09',
+    'paź': '10',
+    'lis': '11',
+    'gru': '12'
+}
 
-async def fetch_market_value_history(session, player_id, conn):
+def parse_polish_date(date_str):
+    # Replace Polish month abbreviation with corresponding number
+    for polish_month, month_number in MONTH_MAP.items():
+        if polish_month in date_str:
+            date_str = date_str.replace(polish_month, month_number)
+            break
+    # Convert the date string to datetime object
+    return datetime.datetime.strptime(date_str, "%d %m %Y")
+
+async def fetch_market_value_history(session, player_id, conn, event_date):
     url = f"https://www.transfermarkt.pl/ceapi/marketValueDevelopment/graph/{player_id}"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
@@ -490,26 +519,45 @@ async def fetch_market_value_history(session, player_id, conn):
             if response.status == 200:
                 data = await response.json()
                 if 'list' in data:
-                    records = []
+                    # Convert event_date to datetime object
+                    event_date = datetime.datetime.strptime(event_date, "%d-%m-%Y")
+                    closest_record = None
+
                     for item in data['list']:
                         market_value = item.get('mw', '-')
                         date_mv = item.get('datum_mw')
                         club = item.get('verein', '')
 
-                        if market_value == "-":
+                        if market_value == "-" or not date_mv:
                             continue
 
                         try:
-                            market_value_converted = convert_value(market_value)
-                            records.append((player_id, market_value_converted, date_mv, club))
-                        except ValueError as ve:
-                            print(f"Error converting market value '{market_value}': {ve}")
+                            # Convert the date_mv (in "dd mmm yyyy" format) to a datetime object
+                            date_mv_obj = parse_polish_date(date_mv)
+                        except ValueError:
+                            print(f"Invalid date format for player ID {player_id}: {date_mv}")
+                            continue
 
-                    if records:
-                        cursor = conn.cursor()
-                        cursor.executemany("INSERT INTO market_value_history (player_id, value, date, club) VALUES (?, ?, ?, ?)", records)
-                        conn.commit()
-                        print(f"Inserted {len(records)} records for player ID {player_id}")
+                        if date_mv_obj < event_date:
+                            if closest_record is None or date_mv_obj > closest_record['date']:
+                                closest_record = {
+                                    'player_id': player_id,
+                                    'value': market_value,
+                                    'date': date_mv_obj,
+                                    'club': club
+                                }
+
+                    if closest_record:
+                        try:
+                            market_value_converted = convert_value(closest_record['value'])
+                            cursor = conn.cursor()
+                            cursor.execute("INSERT INTO market_value_history (player_id, value, date, club) VALUES (?, ?, ?, ?)",
+                                           (closest_record['player_id'], market_value_converted, closest_record['date'].strftime('%Y-%m-%d'), closest_record['club']))
+                            conn.commit()
+                            print(f"Inserted record for player ID {player_id}: {market_value_converted} on {closest_record['date'].strftime('%Y-%m-%d')}")
+
+                        except ValueError as ve:
+                            print(f"Error converting market value '{closest_record['value']}': {ve}")
 
             else:
                 print(f"Failed to retrieve data for player ID {player_id}. Status code: {response.status}")
@@ -517,13 +565,13 @@ async def fetch_market_value_history(session, player_id, conn):
     except Exception as e:
         print(f"An error occurred while processing player ID {player_id}: {e}")
 
-async def save_market_value_history_async(player_ids, conn):
+async def save_market_value_history_async(player_ids, conn, event_date):
     async with aiohttp.ClientSession() as session:
-        tasks = [fetch_market_value_history(session, player_id, conn) for player_id in player_ids]
+        tasks = [fetch_market_value_history(session, player_id, conn, event_date) for player_id in player_ids]
         await asyncio.gather(*tasks)
 
-def save_market_value_history(player_ids, conn):
-    asyncio.run(save_market_value_history_async(player_ids, conn))
+def save_market_value_history(player_ids, conn, event_date):
+    asyncio.run(save_market_value_history_async(player_ids, conn, event_date))
 
 # Uruchomienie całego procesu
 # Uruchomienie całego procesu
@@ -589,7 +637,7 @@ def run_scraping_process():
     # Pobieranie listy drużyn i zawodników z bazy danych
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM teams")
-    teams_df = pd.DataFrame(cursor.fetchall(), columns=["Team", "Player Name", "Transfermarkt ID"])
+    teams_df = pd.DataFrame(cursor.fetchall(), columns=["Team ID", "Team", "Player Name", "Transfermarkt ID"])
 
     # Dodanie kolumny Transfermarkt ID
     add_column_transfermarkt_id(teams_df, conn)
@@ -602,7 +650,7 @@ def run_scraping_process():
     player_ids = [pid[0] for pid in player_ids]
 
     # Call the function with the list of player IDs
-    save_market_value_history(player_ids, conn)
+    save_market_value_history(player_ids, conn, "20-11-2022")
 
     # Zamknięcie połączenia z bazą danych
     conn.close()
