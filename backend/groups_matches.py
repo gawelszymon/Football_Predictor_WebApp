@@ -28,7 +28,7 @@ api_urls = [
     'https://www.sofascore.com/api/v1/unique-tournament/1/season/56953/events/next/1'
 ]
 
-group_name = 'Group A'
+group_name = 'Group B'
 
 all_matches = []
 
