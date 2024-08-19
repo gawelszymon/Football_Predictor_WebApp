@@ -12,13 +12,9 @@ axios.get(url)
         const matchDetails = [];
         const matchResult = [];
 
-        // Zmodyfikowany selektor CSS, aby odnosił się do konkretnej tabeli
         $('#mw-content-text > div.mw-content-ltr.mw-parser-output > div:nth-child(164) > table tbody tr td').each((index, element) => {
-            // Tutaj możesz przetwarzać elementy wewnątrz wskazanej tabeli
             const date = $(element).text().trim();
-            //const teams = $(element).find('td').eq(1).text().trim();
 
-            // Przykład dodania danych do tablicy matchDetails
             if (date.includes('Hiszpania') || date.includes('Gruzja') || date.includes('Niemcy') || date.includes('Dania') || date.includes('Portugalia')
                 || date.includes('Słowenia') || date.includes('Francja') || date.includes('Belgia') || date.includes('Rumunia') || date.includes('Holandia') 
                 || date.includes('Austria') || date.includes('Turcja') || date.includes('Anglia') || date.includes('Słowacja') || date.includes('Szwajcaria')
@@ -31,7 +27,7 @@ axios.get(url)
         });
 
         $('td[rowspan="2"][style^="border:solid #aaa;border-width:"]').each((index, element) => {
-            // Tutaj możesz przetwarzać elementy wewnątrz wskazanej tabeli
+            
             let date = $(element).text().trim();
 
             let penalties = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
