@@ -944,16 +944,16 @@ async def fetch(session, url):
         return await response.text()
 
 
-async def get_ranking(session, federation, country):
+async def get_ranking(session, federation, country, year):
     urls = {
-        "UEFA": "https://www.transfermarkt.com/uefa-champions-league/nationenwertung/pokalwettbewerb/CL/plus/0?saison_id=2021",
-        "CAF": "https://www.transfermarkt.com/caf-champions-league/nationenwertung/pokalwettbewerb/ACL/plus/0?saison_id=2021",
-        "CONMEBOL": "https://www.transfermarkt.com/copa-libertadores/nationenwertung/pokalwettbewerb/CLI/plus/0?saison_id=2021",
-        "CONCACAF": "https://www.transfermarkt.com/concacaf-champions-cup/nationenwertung/pokalwettbewerb/CCL/plus/0?saison_id=2021",
-        "AFC": "https://www.transfermarkt.com/afc-champions-league/nationenwertung/pokalwettbewerb/AFCL/plus/0?saison_id=2021",
-        "OFC": "https://www.transfermarkt.com/ofc-champions-league/nationenwertung/pokalwettbewerb/OCL/plus/0?saison_id=2021",
-        "UEFA_EL": "https://www.transfermarkt.com/uefa-europa-league/nationenwertung/pokalwettbewerb/EL/plus/0?saison_id=2021",
-        "CONMEBOL_CS": "https://www.transfermarkt.com/copa-sudamericana/nationenwertung/pokalwettbewerb/CS/plus/0?saison_id=2021",
+        "UEFA": f"https://www.transfermarkt.com/uefa-champions-league/nationenwertung/pokalwettbewerb/CL/plus/0?saison_id={year}",
+        "CAF": f"https://www.transfermarkt.com/caf-champions-league/nationenwertung/pokalwettbewerb/ACL/plus/0?saison_id={year}",
+        "CONMEBOL": f"https://www.transfermarkt.com/copa-libertadores/nationenwertung/pokalwettbewerb/CLI/plus/0?saison_id={year}",
+        "CONCACAF": f"https://www.transfermarkt.com/concacaf-champions-cup/nationenwertung/pokalwettbewerb/CCL/plus/0?saison_id={year}",
+        "AFC": f"https://www.transfermarkt.com/afc-champions-league/nationenwertung/pokalwettbewerb/AFCL/plus/0?saison_id={year}",
+        "OFC": f"https://www.transfermarkt.com/ofc-champions-league/nationenwertung/pokalwettbewerb/OCL/plus/0?saison_id={year}",
+        "UEFA_EL": f"https://www.transfermarkt.com/uefa-europa-league/nationenwertung/pokalwettbewerb/EL/plus/0?saison_id={year}",
+        "CONMEBOL_CS": f"https://www.transfermarkt.com/copa-sudamericana/nationenwertung/pokalwettbewerb/CS/plus/0?saison_id={year}",
     }
 
     if federation not in urls:
@@ -992,9 +992,9 @@ async def get_ranking(session, federation, country):
                         break
 
         if federation == "CONMEBOL":
-            europa_league_url = urls.get("CONMEBOL_CS")
-            if europa_league_url:
-                response_text = await fetch(session, europa_league_url)
+            sudamericana_url = urls.get("CONMEBOL_CS")
+            if sudamericana_url:
+                response_text = await fetch(session, sudamericana_url)
                 soup = BeautifulSoup(response_text, 'html.parser')
                 rows = soup.find_all('tr', {'class': ['odd', 'even']})
                 for row in rows:
@@ -1011,7 +1011,7 @@ async def get_ranking(session, federation, country):
     return ranking if ranking > 0 else None
 
 
-async def update_market_value_history_with_rankings(conn, football_teams_info):
+async def update_market_value_history_with_rankings(conn, football_teams_info, year):
     cursor = conn.cursor()
 
     # Dodanie kolumny dla federacji, kraju i rankingu, jeśli nie istnieją
@@ -1039,7 +1039,7 @@ async def update_market_value_history_with_rankings(conn, football_teams_info):
                 country = team_info[1]
                 federation = team_info[2]
 
-                tasks.append(get_ranking(session, federation, country))
+                tasks.append(get_ranking(session, federation, country, year))
 
         rankings = await asyncio.gather(*tasks)
 
@@ -1060,10 +1060,11 @@ async def update_market_value_history_with_rankings(conn, football_teams_info):
 
 
 # Uruchomienie całego procesu
-def run_scraping_process():
+def run_scraping_process(year, tournament):
     try:
-        tournament = "world_cup1"
-        conn = create_database(tournament, 2022)
+        tournament = tournament
+        year = year - 1
+        conn = create_database(tournament, year)
         print("Baza danych została utworzona.")
 
         # Dodanie kolumny hashy klubów (jeśli nie została wcześniej dodana)
@@ -1095,7 +1096,7 @@ def run_scraping_process():
         print("Historia wartości rynkowej została pobrana i zapisana.")
 
         # Dodajemy informacje o federacji, kraju i rankingu do market_value_history
-        asyncio.run(update_market_value_history_with_rankings(conn, football_teams_info))
+        asyncio.run(update_market_value_history_with_rankings(conn, football_teams_info, year))
         print("Informacje o federacji, kraju i rankingu zostały zaktualizowane.")
 
         # Zamknięcie połączenia z bazą danych
@@ -1106,5 +1107,5 @@ def run_scraping_process():
         print(f"Wystąpił błąd: {e}")
 
 
-# Wywołanie funkcji głównej, aby uruchomić cały proces
-run_scraping_process()
+# Wywołanie funkcji głównej, aby uruchomić cały proces dla konkretnego roku
+run_scraping_process(2022, "world_cup1")
