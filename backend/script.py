@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import time
 import aiohttp
 import requests
 from bs4 import BeautifulSoup
@@ -240,7 +241,7 @@ def clean_player_name(player_name):
         "Gilles Yapi Yapo": "Gilles Yapi",
         "Predrag Đorđević": "Predrag Djordjevic",
         "Nenad Đorđević": "Nenad Djordjevic",
-        "Dušan Petković[29]": "Dusan Petkovic",
+        "Dušan Petković[29]": "DUnited Statesn Petkovic",
         "Paulo Figueiredo": "Figueiredo",
         "Edson Nobre": "Edson",
         "Amir Hossein Sadeghi": "Amirhossein Sadeghi",
@@ -385,7 +386,7 @@ def clean_player_name(player_name):
         "Kara Mbodji": "Kara Mbodj",
         "Sebas Méndez": "Sebastián Méndez",
         "Hassan Al-Haydos": "Hasan Al-Haydos",
-        "Musab Kheder": "Musab Khoder",
+        "MUnited Statesb Kheder": "MUnited Statesb Khoder",
         "Ismaeel Mohammad": "Ismaeel Mohammed",
         "Mostafa Meshaal": "Mustafa Mashaal",
         "Shojae Khalilzadeh": "Shoja Khalilzadeh",
@@ -409,7 +410,8 @@ def clean_player_name(player_name):
          "Jeong Woo-yeong": "Woo-yeong Jeong",
          "Song Min-kyu": "Min-kyu Song",
          "Kim Moon-hwan": "Moon-hwan Kim",
-         "Munir Mohamedi": "Munir El Kajoui"
+         "Munir Mohamedi": "Munir El Kajoui",
+         "Musab Kheder": "Musab Khoder",
      }
     return replacements.get(player_name, player_name)
 
@@ -546,7 +548,7 @@ async def fetch_market_value_history(session, player_id, conn, event_date):
                         date_mv = item.get('datum_mw')
                         club = item.get('verein', '')
 
-                        if market_value == "-" or not date_mv:
+                        if market_value == "-" or not date_mv or club == "Koniec kariery":
                             continue
 
                         try:
@@ -606,399 +608,451 @@ def save_market_value_history(player_ids, conn, event_date):
 
 
 
+football_teams_info = [
+    ("1.FC Köln", "Germany", "UEFA"),
+    ("1.FC Union Berlin", "Germany", "UEFA"),
+    ("AC Fiorentina", "Italy", "UEFA"),
+    ("AC Milan", "Italy", "UEFA"),
+    ("AD Guanacasteca", "Costa Rica", "CONCACAF"),
+    ("AEK Ateny", "Greece", "UEFA"),
+    ("AFC Bournemouth", "England", "UEFA"),
+    ("AFC Sunderland", "England", "UEFA"),
+    ("AFC Wimbledon", "England", "UEFA"),
+    ("AS Monaco", "France", "UEFA"),
+    ("AS Roma", "Italy", "UEFA"),
+    ("Abha Club", "Saudi Arabia", "AFC"),
+    ("Adelaide United", "Australia", "AFC"),
+    ("Airbus UK Broughton", "England", "UEFA"),
+    ("Ajax Amsterdam", "Netherlands", "UEFA"),
+    ("Al-Ahli SC", "Qatar", "AFC"),
+    ("Al-Ahli SFC", "Saudi Arabia", "AFC"),
+    ("Al-Arabi SC", "Qatar", "AFC"),
+    ("Al-Duhail SC", "Qatar", "AFC"),
+    ("Al-Ettifaq FC", "Saudi Arabia", "AFC"),
+    ("Al-Fateh SC", "Saudi Arabia", "AFC"),
+    ("Al-Gharafa SC", "Qatar", "AFC"),
+    ("Al-Hilal SFC", "Saudi Arabia", "AFC"),
+    ("Al-Ittihad Club", "Saudi Arabia", "AFC"),
+    ("Al-Nassr FC", "Saudi Arabia", "AFC"),
+    ("Al-Rayyan SC", "Qatar", "AFC"),
+    ("Al-Sadd SC", "Qatar", "AFC"),
+    ("Al-Shabab FC", "Saudi Arabia", "AFC"),
+    ("Al-Wakrah SC", "Qatar", "AFC"),
+    ("Al-Wehda FC", "Saudi Arabia", "AFC"),
+    ("Alanyaspor", "Türkiye", "UEFA"),
+    ("Amiens SC", "France", "UEFA"),
+    ("Antalyaspor", "Türkiye", "UEFA"),
+    ("Aston Villa", "England", "UEFA"),
+    ("Atalanta BC", "Italy", "UEFA"),
+    ("Athletic Bilbao", "Spain", "UEFA"),
+    ("Atlanta United FC", "United States", "CONCACAF"),
+    ("Atlético Madryt", "Spain", "UEFA"),
+    ("Atromitos Ateny", "Greece", "UEFA"),
+    ("Austin FC", "United States", "CONCACAF"),
+    ("Bayer 04 Leverkusen", "Germany", "UEFA"),
+    ("Bayern Monachium", "Germany", "UEFA"),
+    ("Benevento Calcio", "Italy", "UEFA"),
+    ("Benfika Lizbona", "Portugal", "UEFA"),
+    ("Besiktas JK", "Türkiye", "UEFA"),
+    ("Birmingham City", "England", "UEFA"),
+    ("Borussia Dortmund", "Germany", "UEFA"),
+    ("Borussia Mönchengladbach", "Germany", "UEFA"),
+    ("Brescia Calcio", "Italy", "UEFA"),
+    ("Brighton & Hove Albion", "England", "UEFA"),
+    ("Bröndby IF", "Denmark", "UEFA"),
+    ("CA Newell's Old Boys", "Argentina", "CONMEBOL"),
+    ("CA River Plate", "Argentina", "CONMEBOL"),
+    ("CD Cruz Azul", "Mexico", "CONCACAF"),
+    ("CD Lugo", "Spain", "UEFA"),
+    ("CF América", "Mexico", "CONCACAF"),
+    ("CF Monterrey", "Mexico", "CONCACAF"),
+    ("CF Pachuca", "Mexico", "CONCACAF"),
+    ("CS Herediano", "Costa Rica", "CONCACAF"),
+    ("CS Sfaxien", "Tunisia", "CAF"),
+    ("Carabobo FC", "Venezuela", "CONMEBOL"),
+    ("Cardiff City", "England", "UEFA"),
+    ("Celta de Vigo", "Spain", "UEFA"),
+    ("Celtic Glasgow", "Scotland", "UEFA"),
+    ("Central Coast Mariners", "Australia", "AFC"),
+    ("Cercle Brügge", "Belgium", "UEFA"),
+    ("Charlotte FC", "United States", "CONCACAF"),
+    ("Chelsea FC", "England", "UEFA"),
+    ("Clermont Foot 63", "France", "UEFA"),
+    ("Club Africain Tunis", "Tunisia", "CAF"),
+    ("Club León FC", "Mexico", "CONCACAF"),
+    ("Columbus Crew", "United States", "CONCACAF"),
+    ("Crystal Palace", "England", "UEFA"),
+    ("Cádiz CF", "Spain", "UEFA"),
+    ("Deportivo Guadalajara", "Mexico", "CONCACAF"),
+    ("Deportivo Saprissa", "Costa Rica", "CONCACAF"),
+    ("Dundee United FC", "Scotland", "UEFA"),
+    ("ESTAC Troyes", "France", "UEFA"),
+    ("Eintracht Frankfurt", "Germany", "UEFA"),
+    ("El Ahly Kair", "Egypt", "CAF"),
+    ("Esperance Tunis", "Tunisia", "CAF"),
+    ("Esteghlal FC", "Iran", "AFC"),
+    ("Etoile Sportive du Sahel", "Tunisia", "CAF"),
+    ("FC Arsenal", "England", "UEFA"),
+    ("FC Augsburg", "Germany", "UEFA"),
+    ("FC Barcelona", "Spain", "UEFA"),
+    ("FC Bologna", "Italy", "UEFA"),
+    ("FC Brentford", "England", "UEFA"),
+    ("FC Brügge", "Belgium", "UEFA"),
+    ("FC Burnley", "England", "UEFA"),
+    ("FC Cincinnati", "United States", "CONCACAF"),
+    ("FC Dallas", "United States", "CONCACAF"),
+    ("FC Everton", "England", "UEFA"),
+    ("FC Fulham", "England", "UEFA"),
+    ("FC Juárez", "Mexico", "CONCACAF"),
+    ("FC Kopenhaga", "Denmark", "UEFA"),
+    ("FC Liverpool", "England", "UEFA"),
+    ("FC Lorient", "France", "UEFA"),
+    ("FC Luzern", "Switzerland", "UEFA"),
+    ("FC Middlesbrough", "England", "UEFA"),
+    ("FC Paris Saint-Germain", "France", "UEFA"),
+    ("FC Porto", "Portugal", "UEFA"),
+    ("FC Portsmouth", "England", "UEFA"),
+    ("FC Reading", "England", "UEFA"),
+    ("FC Sao Paulo", "Brazil", "CONMEBOL"),
+    ("FC St. Pauli", "Germany", "UEFA"),
+    ("FC Tokyo", "Japan", "AFC"),
+    ("FC Watford", "England", "UEFA"),
+    ("Fagiano Okayama", "Japan", "AFC"),
+    ("Fenerbahce", "Türkiye", "UEFA"),
+    ("Ferencvárosi TC", "Hungary", "UEFA"),
+    ("Feyenoord Rotterdam", "Netherlands", "UEFA"),
+    ("Fortuna Düsseldorf", "Germany", "UEFA"),
+    ("GNK Dinamo Zagrzeb", "Croatia", "UEFA"),
+    ("Galatasaray", "Türkiye", "UEFA"),
+    ("Heart of Midlothian FC", "Scotland", "UEFA"),
+    ("Hellas Verona", "Italy", "UEFA"),
+    ("Hertha BSC", "Germany", "UEFA"),
+    ("Houston Dynamo FC", "United States", "CONCACAF"),
+    ("Huddersfield Town", "England", "UEFA"),
+    ("Imbabura SC", "Ecuador", "CONMEBOL"),
+    ("Independiente del Valle", "Ecuador", "CONMEBOL"),
+    ("Inter Mediolan", "Italy", "UEFA"),
+    ("Inter Miami CF", "United States", "CONCACAF"),
+    ("Juventus Turyn", "Italy", "UEFA"),
+    ("KRC Genk", "Belgium", "UEFA"),
+    ("Kawasaki Frontale", "Japan", "AFC"),
+    ("Kayserispor", "Türkiye", "UEFA"),
+    ("Konyaspor", "Türkiye", "UEFA"),
+    ("Kuwait SC", "Kuwait", "AFC"),
+    ("LD Alajuelense", "Costa Rica", "CONCACAF"),
+    ("LDU Quito", "Ecuador", "CONMEBOL"),
+    ("LOSC Lille", "France", "UEFA"),
+    ("Lech Poznań", "Poland", "UEFA"),
+    ("Leeds United", "England", "UEFA"),
+    ("Legia Warszawa", "Poland", "UEFA"),
+    ("Leicester City", "England", "UEFA"),
+    ("Los Angeles FC", "United States", "CONCACAF"),
+    ("Luton Town", "England", "UEFA"),
+    ("Manchester City", "England", "UEFA"),
+    ("Manchester United", "England", "UEFA"),
+    ("Millonarios FC", "Colombia", "CONMEBOL"),
+    ("Milton Keynes Dons", "England", "UEFA"),
+    ("Montpellier HSC", "France", "UEFA"),
+    ("Municipal Grecia", "Costa Rica", "CONCACAF"),
+    ("Nagoya Grampus", "Japan", "AFC"),
+    ("Nashville SC", "United States", "CONCACAF"),
+    ("New York City FC", "United States", "CONCACAF"),
+    ("New York Red Bulls", "United States", "CONCACAF"),
+    ("Newcastle United", "England", "UEFA"),
+    ("Norwich City", "England", "UEFA"),
+    ("Nottingham Forest", "England", "UEFA"),
+    ("OGC Nice", "France", "UEFA"),
+    ("Odense Boldklub", "Denmark", "UEFA"),
+    ("Olympiakos Pireus", "Greece", "UEFA"),
+    ("Olympique Lyon", "France", "UEFA"),
+    ("Olympique Marseille", "France", "UEFA"),
+    ("Omonia Nikozja", "Cyprus", "UEFA"),
+    ("PSV Eindhoven", "Netherlands", "UEFA"),
+    ("Pafos FC", "Cyprus", "UEFA"),
+    ("Persepolis FC", "Iran", "AFC"),
+    ("Pogoń Szczecin", "Poland", "UEFA"),
+    ("Queens Park Rangers", "England", "UEFA"),
+    ("R Charleroi SC", "Belgium", "UEFA"),
+    ("RC Lens", "France", "UEFA"),
+    ("RC Strasbourg Alsace", "France", "UEFA"),
+    ("RCD Espanyol", "Spain", "UEFA"),
+    ("RSC Anderlecht", "Belgium", "UEFA"),
+    ("RasenBallsport Leipzig", "Germany", "UEFA"),
+    ("Rayo Vallecano", "Spain", "UEFA"),
+    ("Real Betis Balompié", "Spain", "UEFA"),
+    ("Real Madryt", "Spain", "UEFA"),
+    ("Real Salt Lake City", "United States", "CONCACAF"),
+    ("Real Valladolid CF", "Spain", "UEFA"),
+    ("Royal Antwerpia FC", "Belgium", "UEFA"),
+    ("SC Freiburg", "Germany", "UEFA"),
+    ("SC Heerenveen", "Netherlands", "UEFA"),
+    ("SD Aucas", "Ecuador", "CONMEBOL"),
+    ("SD Ponferradina", "Spain", "UEFA"),
+    ("SM Caen", "France", "UEFA"),
+    ("SSC Napoli", "Italy", "UEFA"),
+    ("SV Schalding-Heining", "Germany", "UEFA"),
+    ("SV Werder Bremen", "Germany", "UEFA"),
+    ("Santos Laguna", "Mexico", "CONCACAF"),
+    ("Seattle Sounders FC", "United States", "CONCACAF"),
+    ("Sepahan FC", "Iran", "AFC"),
+    ("Sevilla FC", "Spain", "UEFA"),
+    ("Shabab Al-Ahli Club", "United Arab Emirates", "AFC"),
+    ("Sheffield United", "England", "UEFA"),
+    ("Shimizu S-Pulse", "Japan", "AFC"),
+    ("Spezia Calcio", "Italy", "UEFA"),
+    ("St. Mirren FC", "Scotland", "UEFA"),
+    ("Stade Reims", "France", "UEFA"),
+    ("Stade Rennais FC", "France", "UEFA"),
+    ("Stoke City", "England", "UEFA"),
+    ("Swansea City", "England", "UEFA"),
+    ("Swindon Town", "England", "UEFA"),
+    ("Sydney FC", "Australia", "AFC"),
+    ("TSG 1899 Hoffenheim", "Germany", "UEFA"),
+    ("Tottenham Hotspur", "England", "UEFA"),
+    ("Trabzonspor", "Türkiye", "UEFA"),
+    ("Tractor Sazi FC", "Iran", "AFC"),
+    ("UC Sampdoria", "Italy", "UEFA"),
+    ("US Cremonese", "Italy", "UEFA"),
+    ("US Monastir", "Tunisia", "CAF"),
+    ("US Salernitana 1919", "Italy", "UEFA"),
+    ("Urawa Red Diamonds", "Japan", "AFC"),
+    ("VV St. Truiden", "Belgium", "UEFA"),
+    ("Valencia CF", "Spain", "UEFA"),
+    ("Vejle Boldklub", "Denmark", "UEFA"),
+    ("VfB Stuttgart", "Germany", "UEFA"),
+    ("VfL Wolfsburg", "Germany", "UEFA"),
+    ("Villarreal CF", "Spain", "UEFA"),
+    ("Vitoria Guimarães SC", "Portugal", "UEFA"),
+    ("West Ham United", "England", "UEFA"),
+    ("Wolverhampton Wanderers", "England", "UEFA"),
+    ("Zamalek SC", "Egypt", "CAF"),
+    ("Melbourne City FC", "Australia", "AFC"),
+    ("Burgos CF", "Spain", "UEFA"),
+    ("FC Southampton", "England", "UEFA"),
+    ("CD Leganés", "Spain", "UEFA"),
+    ("Real Sociedad", "Spain", "UEFA"),
+    ("VfL Bochum", "Germany", "UEFA"),
+    ("Shonan Bellmare", "Japan", "AFC"),
+    ("FC Schalke 04", "Germany", "UEFA"),
+    ("Sporting CP", "Portugal", "UEFA"),
+    ("Hatayspor", "Türkiye", "UEFA"),
+    ("CF Montréal", "Canada", "CONCACAF"),
+    ("KMSK Deinze", "Belgium", "UEFA"),
+    ("Vancouver Whitecaps FC", "Canada", "CONCACAF"),
+    ("Minnesota United FC", "United States", "CONCACAF"),
+    ("Toronto FC", "Canada", "CONCACAF"),
+    ("GD Chaves", "Portugal", "UEFA"),
+    ("Crvena Zvezda Belgrad", "Serbia", "UEFA"),
+    ("FC Basel 1893", "Switzerland", "UEFA"),
+    ("Zenit Petersburg", "Russia", "UEFA"),
+    ("US Sassuolo", "Italy", "UEFA"),
+    ("Panetolikos GFS", "Greece", "UEFA"),
+    ("Standard Liège", "Belgium", "UEFA"),
+    ("CA Osasuna", "Spain", "UEFA"),
+    ("Angers SCO", "France", "UEFA"),
+    ("FC Toulouse", "France", "UEFA"),
+    ("HNK Hajduk Split", "Croatia", "UEFA"),
+    ("Red Bull Salzburg", "Austria", "UEFA"),
+    ("St. Johnstone FC", "Scotland", "UEFA"),
+    ("Stade Brestois 29", "France", "UEFA"),
+    ("Wydad Casablanca", "Morocco", "CAF"),
+    ("SSC Bari", "Italy", "UEFA"),
+    ("UNAM Pumas", "Mexico", "CONCACAF"),
+    ("Qatar SC", "Qatar", "AFC"),
+    ("NK Osijek", "Croatia", "UEFA"),
+    ("Sociedade Esportiva Palmeiras", "Brazil", "CONMEBOL"),
+    ("Glasgow Rangers", "Scotland", "UEFA"),
+    ("Coton Sport FC de Garoua", "Cameroon", "CAF"),
+    ("Philadelphia Union", "United States", "CONCACAF"),
+    ("Hannover 96", "Germany", "UEFA"),
+    ("Getafe CF", "Spain", "UEFA"),
+    ("BSC Young Boys", "Switzerland", "UEFA"),
+    ("Dynamo Moskwa", "Russia", "UEFA"),
+    ("KV Mechelen", "Belgium", "UEFA"),
+    ("Shanghai Shenhua", "China", "AFC"),
+    ("PAOK Saloniki", "Greece", "UEFA"),
+    ("Flamengo Rio de Janeiro", "Brazil", "CONMEBOL"),
+    ("Torino FC", "Italy", "UEFA"),
+    ("UD Almería", "Spain", "UEFA"),
+    ("Al-Tai FC", "Saudi Arabia", "AFC"),
+    ("1.FSV Mainz 05", "Germany", "UEFA"),
+    ("Aris Saloniki", "Greece", "UEFA"),
+    ("SC Braga", "Portugal", "UEFA"),
+    ("Udinese Calcio", "Italy", "UEFA"),
+    ("FC St. Gallen 1879", "Switzerland", "UEFA"),
+    ("Hearts of Oak", "Ghana", "CAF"),
+    ("Chicago Fire FC", "United States", "CONCACAF"),
+    ("KAS Eupen", "Belgium", "UEFA"),
+    ("FC Nantes", "France", "UEFA"),
+    ("AJ Auxerre", "France", "UEFA"),
+    ("KAA Gent", "Belgium", "UEFA"),
+    ("Bristol City", "England", "UEFA"),
+    ("Lazio Rzym", "Italy", "UEFA"),
+    ("FC Seoul", "Korea, South", "AFC"),
+    ("Jeonbuk Hyundai Motors", "Korea, South", "AFC"),
+    ("Ulsan Hyundai", "Korea, South", "AFC"),
+    ("Daegu FC", "Korea, South", "AFC"),
+    ("Shandong Taishan", "China", "AFC"),
+    ("RCD Mallorca", "Spain", "UEFA"),
+    ("FC Lugano", "Switzerland", "UEFA"),
+    ("Gamba Osaka", "Japan", "AFC"),
+    ("Colombe Sportive du Dja et Lobo", "Cameroon", "CAF"),
+    ("CA Vélez Sarsfield", "Argentina", "CONMEBOL"),
+    ("Club Nacional", "Uruguay", "CONMEBOL"),
+    ("Gimcheon Sangmu", "Korea, South", "AFC"),
+    ("CA Independiente", "Argentina", "CONMEBOL"),
+    ("Club Athletico Paranaense", "Brazil", "CONMEBOL"),
+    ("Orlando City SC", "United States", "CONCACAF"),
+    ("Los Angeles Galaxy", "United States", "CONCACAF"),
+    ("Asante Kotoko SC", "Ghana", "CAF"),
+    ("Daejeon Hana Citizen", "Korea, South", "AFC")
+]
 
-club_name_mapping = {
-    "Leverkusen": "Bayer 04 Leverkusen",
-    "Man City": "Manchester City",
-    "Arsenal": "FC Arsenal",
-    "Newcastle": "Newcastle United",
-    "Sheffield United": "Sheffield United",
-    "Brighton": "Brighton & Hove Albion",
-    "Monaco": "AS Monaco",
-    "PSV": "PSV Eindhoven",
-    "Valencia": "Valencia CF",
-    "Ajax": "Ajax Amsterdam",
-    "Dortmund": "Borussia Dortmund",
-    "Juventus": "Juventus Turyn",
-    "Luton": "Luton Town",
-    "Fulham": "FC Fulham",
-    "Leeds": "Leeds United",
-    "Chelsea": "Chelsea FC",
-    "Milan": "AC Milan",
-    "Barcelona": "FC Barcelona",
-    "Feyenoord": "Feyenoord Rotterdam",
-    "Lille": "LOSC Lille",
-    "Rennes": "Stade Rennais FC",
-    "Brentford": "FC Brentford",
-    "Gladbach": "Borussia Mönchengladbach",
-    "Watford": "FC Watford",
-    "Tottenham": "Tottenham Hotspur",
-    "Swansea": "Swansea City",
-    "Lyon": "Olympique Lyon",
-    "Villarreal": "Villarreal CF",
-    "Atlético": "Atlético Madryt",
-    "Sevilla": "Sevilla FC",
-    "Betis": "Real Betis Balompié",
-    "Paris SG": "FC Paris Saint-Germain",
-    "Roma": "AS Roma",
-    "Atalanta": "Atalanta BC",
-    "Genk": "KRC Genk",
-    "Wolves": "Wolverhampton Wanderers",
-    "Forest": "Nottingham Forest",
-    "Celtic": "Celtic Glasgow",
-    "Wolfsburg": "VfL Wolfsburg",
-    "Celta": "Celta de Vigo",
-    "Napoli": "SSC Napoli",
-    "Bournemouth": "AFC Bournemouth",
-    "Aston Villa": "Aston Villa",
-    "Burnley": "FC Burnley",
-    "Inter": "Inter Mediolan",
-    "Lech": "Lech Poznań",
-    "Lens": "RC Lens",
-    "Fiorentina": "AC Fiorentina",
-    "Sampdoria": "UC Sampdoria",
-    "Nice": "OGC Nice",
-    "Cardiff": "Cardiff City",
-    "Union Berlin": "1.FC Union Berlin",
-    "RB Leipzig": "RasenBallsport Leipzig",
-    "Hertha": "Hertha BSC",
-    "Man United": "Manchester United",
-    "Real Madrid": "Real Madryt",
-    "Bayern": "Bayern Monachium",
-    "Liverpool": "FC Liverpool",
-    "Frankfurt": "Eintracht Frankfurt",
-    "Galatasaray": "Galatasaray",
-    "Verona": "Hellas Verona",
-    "Legia": "Legia Warszawa",
-    "Millonarios FC": "Millonarios FC",
-    "Marseille": "Olympique Marseille",
-    "West Ham": "West Ham United",
-    "Freiburg": "SC Freiburg",
-    "Köln": "1.FC Köln",
-    "Real Sociedad": "Real Sociedad",
-    "Southampton": "FC Southampton",
-    "Sporting": "Sporting CP",
-    "Schalke": "FC Schalke 04",
-    "Stuttgart": "VfB Stuttgart",
-    "Bilbao": "Athletic Bilbao",
-    "Hoffenheim": "TSG 1899 Hoffenheim",
-    "Fenerbahçe": "Fenerbahce",
-    "Beşiktaş": "Besiktas JK",
-    "Anderlecht": "RSC Anderlecht",
-    "Basel": "FC Basel 1893",
-    "Dinamo Zagreb": "GNK Dinamo Zagrzeb",
-    "Torino": "Torino FC",
-    "Rangers": "Glasgow Rangers",
-    "Зенит": "Zenit Petersburg",
-    "Osasuna": "CA Osasuna",
-    "Salzburg": "Red Bull Salzburg",
-    "Toulouse": "FC Toulouse",
-    "Reims": "Stade Reims",
-    "Nantes": "FC Nantes",
-    "Bristol City": "Bristol City",
-    "Getafe": "Getafe CF",
-    "Benevento": "Benevento Calcio",
-    "Montpellier": "Montpellier HSC",
-    "Trabzonspor": "Trabzonspor",
-    "Espanyol": "RCD Espanyol",
-    "Burgos": "Burgos CF",
-    "Gent": "KAA Gent",
-    "Udinese": "Udinese Calcio",
-    "Standard": "Standard Liège",
-    "Valladolid": "Real Valladolid CF",
-    "Chicago Fire FC": "Chicago Fire FC",
-    "Rayo Vallecano": "Rayo Vallecano",
-    "ΠΑΟΚ": "PAOK Saloniki"
-}
-
-kluby = {
-    "Royal Antwerpia FC": "Royal Antwerpia FC",
-    "FC Augsburg": "FC Augsburg",
-    "Al-Duhail SC": "Al-Duhail SC",
-    "Al-Rayyan SC": "Al-Rayyan SC",
-    "Los Angeles FC": "Los Angeles FC",
-    "Al-Wakrah SC": "Al-Wakrah SC",
-    "Al-Sadd SC": "Al-Sadd SC",
-    "Santos Laguna": "Santos Laguna",
-    "Al-Arabi SC": "Al-Arabi SC",
-    "Independiente del Valle": "Independiente del Valle",
-    "Queens Park Rangers": "Queens Park Rangers",
-    "FC Everton": "FC Everton",
-    "Vitoria Guimarães SC": "Vitoria Guimarães SC",
-    "Leicester City": "Leicester City",
-    "Al-Gharafa SC": "Al-Gharafa SC",
-    "FC Reading": "FC Reading",
-    "Amiens SC": "Amiens SC",
-    "Pafos FC": "Pafos FC",
-    "LDU Quito": "LDU Quito",
-    "FC Sao Paulo": "FC Sao Paulo",
-    "Club León FC": "Club León FC",
-    "Seattle Sounders FC": "Seattle Sounders FC",
-    "SC Heerenveen": "SC Heerenveen",
-    "Persepolis FC": "Persepolis FC",
-    "US Salernitana 1919": "US Salernitana 1919",
-    "Esteghlal FC": "Esteghlal FC",
-    "AEK Ateny": "AEK Ateny",
-    "FC Brügge": "FC Brügge",
-    "Sepahan FC": "Sepahan FC",
-    "Imbabura SC": "Imbabura SC",
-    "Omonia Nikozja": "Omonia Nikozja",
-    "SD Aucas": "SD Aucas",
-    "R Charleroi SC": "R Charleroi SC",
-    "Al-Ahli SC": "Al-Ahli SC",
-    "Tractor Sazi FC": "Tractor Sazi FC",
-    "Nashville SC": "Nashville SC",
-    "SD Ponferradina": "SD Ponferradina",
-    "Shabab Al-Ahli Club": "Shabab Al-Ahli Club",
-    "FC Dallas": "FC Dallas",
-    "Kayserispor": "Kayserispor",
-    "Inter Miami CF": "Inter Miami CF",
-    "New York Red Bulls": "New York Red Bulls",
-    "Vejle Boldklub": "Vejle Boldklub",
-    "ESTAC Troyes": "ESTAC Troyes",
-    "Norwich City": "Norwich City",
-    "Swindon Town": "Swindon Town",
-    "Dundee United FC": "Dundee United FC",
-    "Atlanta United FC": "Atlanta United FC",
-    "Airbus UK Broughton": "Airbus UK Broughton",
-    "Milton Keynes Dons": "Milton Keynes Dons",
-    "New York City FC": "New York City FC",
-    "CA River Plate": "CA River Plate",
-    "CF Pachuca": "CF Pachuca",
-    "CA Newell's Old Boys": "CA Newell's Old Boys",
-    "AFC Wimbledon": "AFC Wimbledon",
-    "FC Juárez": "FC Juárez",
-    "CF América": "CF América",
-    "US Cremonese": "US Cremonese",
-    "Spezia Calcio": "Spezia Calcio",
-    "CF Monterrey": "CF Monterrey",
-    "Huddersfield Town": "Huddersfield Town",
-    "Houston Dynamo FC": "Houston Dynamo FC",
-    "Deportivo Guadalajara": "Deportivo Guadalajara",
-    "FC Portsmouth": "FC Portsmouth",
-    "Al-Nassr FC": "Al-Nassr FC",
-    "Al-Hilal SFC": "Al-Hilal SFC",
-    "Al-Shabab FC": "Al-Shabab FC",
-    "Birmingham City": "Birmingham City",
-    "Charlotte FC": "Charlotte FC",
-    "FC Kopenhaga": "FC Kopenhaga",
-    "Pogoń Szczecin": "Pogoń Szczecin",
-    "Al-Fateh SC": "Al-Fateh SC",
-    "Melbourne City FC": "Melbourne City FC",
-    "Heart of Midlothian FC": "Heart of Midlothian FC",
-    "Cádiz CF": "Cádiz CF",
-    "Brescia Calcio": "Brescia Calcio",
-    "Al-Ittihad Club": "Al-Ittihad Club",
-    "AFC Sunderland": "AFC Sunderland",
-    "FC Middlesbrough": "FC Middlesbrough",
-    "St. Mirren FC": "St. Mirren FC",
-    "FC St. Pauli": "FC St. Pauli",
-    "Central Coast Mariners": "Central Coast Mariners",
-    "Adelaide United": "Adelaide United",
-    "Bröndby IF": "Bröndby IF",
-    "Columbus Crew": "Columbus Crew",
-    "Odense Boldklub": "Odense Boldklub",
-    "SV Schalding-Heining": "SV Schalding-Heining",
-    "Stoke City": "Stoke City",
-    "Fagiano Okayama": "Fagiano Okayama",
-    "Sydney FC": "Sydney FC",
-    "Kuwait SC": "Kuwait SC",
-    "CS Sfaxien": "CS Sfaxien",
-    "Ferencvárosi TC": "Ferencvárosi TC",
-    "FC Lorient": "FC Lorient",
-    "Etoile Sportive du Sahel": "Etoile Sportive du Sahel",
-    "Esperance Tunis": "Esperance Tunis",
-    "Millonarios FC": "Millonarios FC",
-    "US Monastir": "US Monastir",
-    "Atromitos Ateny": "Atromitos Ateny",
-    "Club Africain Tunis": "Club Africain Tunis",
-    "El Ahly Kair": "El Ahly Kair",
-    "Al-Ettifaq FC": "Al-Ettifaq FC",
-    "SM Caen": "SM Caen",
-    "Zamalek SC": "Zamalek SC",
-    "CD Leganés": "CD Leganés",
-    "VfL Bochum": "VfL Bochum",
-    "Fortuna Düsseldorf": "Fortuna Düsseldorf",
-    "VV St. Truiden": "VV St. Truiden",
-    "Cercle Brügge": "Cercle Brügge",
-    "Shimizu S-Pulse": "Shimizu S-Pulse",
-    "Nagoya Grampus": "Nagoya Grampus",
-    "Shonan Bellmare": "Shonan Bellmare",
-    "Urawa Red Diamonds": "Urawa Red Diamonds",
-    "Kawasaki Frontale": "Kawasaki Frontale",
-    "Deportivo Saprissa": "Deportivo Saprissa",
-    "FC Cincinnati": "FC Cincinnati",
-    "Municipal Grecia": "Municipal Grecia",
-    "SV Werder Bremen": "SV Werder Bremen",
-    "KMSK Deinze": "KMSK Deinze",
-    "Minnesota United FC": "Minnesota United FC",
-    "Vancouver Whitecaps FC": "Vancouver Whitecaps FC",
-    "GD Chaves": "GD Chaves",
-    "Austin FC": "Austin FC",
-    "CF Montréal": "CF Montréal",
-    "Toronto FC": "Toronto FC",
-    "St. Johnstone FC": "St. Johnstone FC",
-    "RC Strasbourg Alsace": "RC Strasbourg Alsace",
-    "US Sassuolo": "US Sassuolo",
-    "Panetolikos GFS": "Panetolikos GFS",
-    "Real Salt Lake City": "Real Salt Lake City",
-    "CD Lugo": "CD Lugo",
-    "NK Osijek": "NK Osijek",
-    "Al-Wehda FC": "Al-Wehda FC",
-    "AD Guanacasteca": "AD Guanacasteca",
-    "Wydad Casablanca": "Wydad Casablanca",
-    "Qatar SC": "Qatar SC",
-    "Angers SCO": "Angers SCO",
-    "UNAM Pumas": "UNAM Pumas",
-    "FC Tokyo": "FC Tokyo",
-    "Sociedade Esportiva Palmeiras": "Sociedade Esportiva Palmeiras",
-    "Stade Brestois 29": "Stade Brestois 29",
-    "SSC Bari": "SSC Bari",
-    "Colombe Sportive du Dja et Lobo": "Colombe Sportive du Dja et Lobo",
-    "Olympiakos Pireus": "Olympiakos Pireus",
-    "Aris Saloniki": "Aris Saloniki",
-    "Abha Club": "Abha Club",
-    "Coton Sport FC de Garoua": "Coton Sport FC de Garoua",
-    "Lazio Rzym": "Lazio Rzym",
-    "RCD Mallorca": "RCD Mallorca",
-    "Crvena Zvezda Belgrad": "Crvena Zvezda Belgrad",
-    "UD Almería": "UD Almería",
-    "SC Braga": "SC Braga",
-    "Al-Tai FC": "Al-Tai FC",
-    "Dynamo Moskwa": "Dynamo Moskwa",
-    "Philadelphia Union": "Philadelphia Union",
-    "HNK Hajduk Split": "HNK Hajduk Split",
-    "Hannover 96": "Hannover 96",
-    "Shanghai Shenhua": "Shanghai Shenhua",
-    "KV Mechelen": "KV Mechelen",
-    "1.FSV Mainz 05": "1.FSV Mainz 05",
-    "FC St. Gallen 1879": "FC St. Gallen 1879",
-    "FC Bologna": "FC Bologna",
-    "BSC Young Boys": "BSC Young Boys",
-    "FC Luzern": "FC Luzern",
-    "KAS Eupen": "KAS Eupen",
-    "Asante Kotoko SC": "Asante Kotoko SC",
-    "Clermont Foot 63": "Clermont Foot 63",
-    "AJ Auxerre": "AJ Auxerre",
-    "Jeonbuk Hyundai Motors": "Jeonbuk Hyundai Motors",
-    "Gimcheon Sangmu": "Gimcheon Sangmu",
-    "Gamba Osaka": "Gamba Osaka",
-    "Daegu FC": "Daegu FC",
-    "FC Seoul": "FC Seoul",
-    "Daejeon Hana Citizen": "Daejeon Hana Citizen",
-    "Ulsan Hyundai": "Ulsan Hyundai",
-    "Hearts of Oak": "Hearts of Oak",
-    "FC Porto": "FC Porto",
-    "Club Nacional": "Club Nacional",
-    "Flamengo Rio de Janeiro": "Flamengo Rio de Janeiro",
-    "CA Independiente": "CA Independiente",
-    "Orlando City SC": "Orlando City SC",
-    "CA Vélez Sarsfield": "CA Vélez Sarsfield",
-    "Club Athletico Paranaense": "Club Athletico Paranaense",
-    "Los Angeles Galaxy": "Los Angeles Galaxy",
-    "FC Lugano": "FC Lugano",
-    "Shandong Taishan": "Shandong Taishan",
-    "Chicago Fire FC": "Chicago Fire FC",
-    "Benfika Lizbona": "Benfika Lizbona"
-}
-
-def fetch_elo_ranking_from_web(date):
-    url = f"http://clubelo.com/{date}/Ranking"
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.text
-    else:
-        print(f"Błąd podczas pobierania ELO rankingów dla {date}: {response.status_code}")
-        return None
-
-
-def parse_elo_ranking(html_content):
-    soup = BeautifulSoup(html_content, "html.parser")
-    ranking_table = soup.find("table", {"class": "ranking"})  # Znajdź tabelę z rankingiem
-
-    elo_data = []
-    if ranking_table:
-        rows = ranking_table.find_all("tr")
-        for row in rows[1:]:  # Pomijamy pierwszy wiersz, który zawiera nagłówki
-            cols = row.find_all("td")
-            if len(cols) >= 4:
-                rank = cols[0].text.strip()
-
-                # Pobierz nazwę klubu z elementu <a> wewnątrz <td class="l">
-                club_name_element = cols[1].find("a")
-                club_name = club_name_element.text.strip() if club_name_element else "N/A"
-
-                elo_rating = cols[2].text.strip()  # ELO w trzeciej kolumnie
-
-                print(f"Przetwarzanie: {club_name}, ELO: {elo_rating}")
-
-                # Dodaj dane do listy
-                elo_data.append({
-                    "rank": rank,
-                    "club_name": club_name,
-                    "elo_rating": float(elo_rating)
-                })
-    else:
-        print("Nie znaleziono tabeli z rankingiem")
-
-    return elo_data
-
-
-def update_market_value_history_with_elo(elo_data, conn):
-    cursor = conn.cursor()
-    for club in elo_data:
-        club_name = club['club_name']
-        elo_rating = club['elo_rating']
-
-        # Generate club hash directly from the normalized club name
-        normalized_club_name = club_name_mapping.get(club_name, club_name)
-        normalized_hash = generate_team_id(normalized_club_name)
-        print(f"Klub: {normalized_club_name}, hash: {normalized_hash}")
-
-        # Search using the club hash
-        sql_select = '''
-            SELECT club_hash FROM market_value_history
-            WHERE club_hash = ?
-        '''
-        cursor.execute(sql_select, (normalized_hash,))
-        result = cursor.fetchone()
-
-        if result:
-            # Update ELO rating in the database
-            sql_update = '''
-                UPDATE market_value_history
-                SET elo_rating = ?
-                WHERE club_hash = ?
-            '''
-            print(f"SQL Update: {sql_update} with values ({elo_rating}, {normalized_hash})")
-            cursor.execute(sql_update, (elo_rating, normalized_hash))
-            print(f"Zaktualizowano klub: {club_name} z ELO: {elo_rating}")
-        else:
-            print(f"Nie znaleziono klubu: {club_name} (szukano: {normalized_club_name})")
-
-    conn.commit()
-
-
-def add_elo_column_to_market_value_history(conn):
+def add_columns_to_market_value_history(conn):
     cursor = conn.cursor()
 
-    # Sprawdzenie, czy kolumna 'elo_rating' już istnieje
+    # Sprawdzenie, czy kolumny już istnieją
     cursor.execute("PRAGMA table_info(market_value_history)")
     columns = [info[1] for info in cursor.fetchall()]
 
-    if 'elo_rating' not in columns:
-        # Jeśli kolumna nie istnieje, dodajemy ją
+    # Dodajemy kolumny, jeśli nie istnieją
+    if 'federation' not in columns:
         cursor.execute('''
             ALTER TABLE market_value_history
-            ADD COLUMN elo_rating REAL
+            ADD COLUMN federation TEXT
         ''')
-        conn.commit()
-        print("Kolumna 'elo_rating' została dodana do tabeli 'market_value_history'.")
-    else:
-        print("Kolumna 'elo_rating' już istnieje w tabeli 'market_value_history'.")
+
+    if 'country' not in columns:
+        cursor.execute('''
+            ALTER TABLE market_value_history
+            ADD COLUMN country TEXT
+        ''')
+
+    if 'ranking' not in columns:
+        cursor.execute('''
+            ALTER TABLE market_value_history
+            ADD COLUMN ranking INTEGER
+        ''')
+
+    conn.commit()
+    print("Kolumny 'federation', 'country' i 'ranking' zostały dodane do tabeli 'market_value_history'.")
+
+
+def get_ranking(federation, country):
+    urls = {
+        "UEFA": "https://www.transfermarkt.com/uefa-champions-league/nationenwertung/pokalwettbewerb/CL/plus/0?saison_id=2021",
+        "CAF": "https://www.transfermarkt.com/caf-champions-league/nationenwertung/pokalwettbewerb/ACL/plus/0?saison_id=2021",
+        "CONMEBOL": "https://www.transfermarkt.com/copa-libertadores/nationenwertung/pokalwettbewerb/CLI/plus/0?saison_id=2021",
+        "CONCACAF": "https://www.transfermarkt.com/concacaf-champions-cup/nationenwertung/pokalwettbewerb/CCL/plus/0?saison_id=2021",
+        "AFC": "https://www.transfermarkt.com/afc-champions-league/nationenwertung/pokalwettbewerb/AFCL/plus/0?saison_id=2021",
+        "OFC": "https://www.transfermarkt.com/ofc-champions-league/nationenwertung/pokalwettbewerb/OCL/plus/0?saison_id=2021",
+        "UEFA_EL": "https://www.transfermarkt.com/uefa-europa-league/nationenwertung/pokalwettbewerb/EL/plus/0?saison_id=2021",
+        "CONMEBOL_CS": "https://www.transfermarkt.com/copa-sudamericana/nationenwertung/pokalwettbewerb/CS/plus/0?saison_id=2021",
+    }
+
+    if federation not in urls:
+        print(f"Nieznana federacja: {federation}")
+        return None
+
+    url = urls[federation]
+
+    try:
+        response = requests.get(url, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        })
+
+        if response.status_code == 404:
+            print("Received 404 error. Retrying...")
+            for i in range(3):  # Retry up to 3 times
+                time.sleep(2)  # Wait 2 seconds before retrying
+                response = requests.get(url, headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+                })
+                if response.status_code != 404:
+                    break
+
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            rows = soup.find_all('tr', {'class': ['odd', 'even']})
+            for row in rows:
+                cells = row.find_all('td')
+                if len(cells) > 1 and country.lower() in cells[1].text.lower():
+                    ranking = int(cells[0].text.strip())
+                    # Przekształć ranking na skalę 100-98-96-...
+                    adjusted_ranking = 100 - (ranking - 1) * 2
+                    return adjusted_ranking
+            print(f"Nie udało się znaleźć rankingu dla klubu w kraju {country}.")
+            return None
+        else:
+            print(f"Unexpected status code {response.status_code} from {url}")
+            return None
+    except Exception as e:
+        print(f"Error fetching the URL {url}: {str(e)}")
+        return None
 
 
 
+def update_market_value_history_with_rankings(conn, football_teams_info):
+    cursor = conn.cursor()
+
+    # Dodanie kolumny dla federacji, kraju i rankingu, jeśli nie istnieją
+    cursor.execute("PRAGMA table_info(market_value_history)")
+    columns = [info[1] for info in cursor.fetchall()]
+
+    if 'federation' not in columns:
+        cursor.execute("ALTER TABLE market_value_history ADD COLUMN federation TEXT")
+    if 'country' not in columns:
+        cursor.execute("ALTER TABLE market_value_history ADD COLUMN country TEXT")
+    if 'ranking' not in columns:
+        cursor.execute("ALTER TABLE market_value_history ADD COLUMN ranking INTEGER")
+    conn.commit()
+
+    cursor.execute("SELECT DISTINCT club FROM market_value_history")
+    clubs = cursor.fetchall()
+
+    for (club,) in clubs:
+        # Debug: Wyświetl nazwę klubu
+        print(f"Processing club: {club}")
+
+        # Znajdź kraj i federację dla klubu
+        team_info = next((info for info in football_teams_info if info[0] == club), None)
+
+        if team_info:
+            country = team_info[1]
+            federation = team_info[2]
+            print(f"Found team info: {team_info}")
+
+            # Pobierz ranking z głównych rozgrywek
+            ranking = get_ranking(federation, country)
+
+            # Jeśli brak rankingu, próbujemy z drugich rozgrywek
+            if federation == "UEFA":
+                europa_league_ranking = get_ranking("UEFA_EL", country)
+                if ranking is not None and europa_league_ranking is not None:
+                    ranking += (100 - europa_league_ranking) / 4
+
+            elif federation == "CONMEBOL":
+                sudamericana_ranking = get_ranking("CONMEBOL_CS", country)
+                if ranking is not None and sudamericana_ranking is not None:
+                    ranking += (100 - sudamericana_ranking) / 4
+
+            # Debug: Wyświetl informacje o rankingu
+            if ranking is not None:
+                print(f"Final Ranking for {country} is {ranking}")
+            else:
+                ranking = 0
+                print(f"Nie udało się znaleźć rankingu dla klubu {club} w kraju {country}.")
+
+            # Aktualizacja tabeli market_value_history
+            cursor.execute('''
+                UPDATE market_value_history 
+                SET federation = ?, country = ?, ranking = ?
+                WHERE club = ?
+            ''', (federation, country, int(ranking), club))
+        else:
+            print(f"Nie udało się znaleźć informacji o klubie {club}.")
+
+    conn.commit()
 
 
 
@@ -1015,9 +1069,6 @@ def run_scraping_process():
         add_club_hash_column_to_market_value_history(conn)
         print("Kolumna hashów klubów została dodana (jeśli nie istniała).")
 
-        # Dodanie kolumny ELO do tabeli market_value_history (jeśli nie została wcześniej dodana)
-        add_elo_column_to_market_value_history(conn)
-        print("Kolumna ELO została dodana (jeśli nie istniała).")
 
         # Pobranie danych drużyn
         scrap_squad("https://en.wikipedia.org/wiki/2022_FIFA_World_Cup_squads", conn)
@@ -1043,14 +1094,9 @@ def run_scraping_process():
         save_market_value_history(player_ids, conn, "20-11-2022")
         print("Historia wartości rynkowej została pobrana i zapisana.")
 
-        # Pobierz dane ELO z konkretnej daty
-        date = "2022-11-20"
-        html_content = fetch_elo_ranking_from_web(date)
-
-        if html_content:
-            elo_data = parse_elo_ranking(html_content)
-            update_market_value_history_with_elo(elo_data, conn)
-            print("Dane ELO zostały zaktualizowane.")
+        # Dodajemy informacje o federacji, kraju i rankingu do market_value_history
+        update_market_value_history_with_rankings(conn, football_teams_info)
+        print("Informacje o federacji, kraju i rankingu zostały zaktualizowane.")
 
         # Zamknięcie połączenia z bazą danych
         conn.close()
