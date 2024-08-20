@@ -908,6 +908,7 @@ football_teams_info = [
     ("Daejeon Hana Citizen", "Korea, South", "AFC")
 ]
 
+
 def add_columns_to_market_value_history(conn):
     cursor = conn.cursor()
 
@@ -938,7 +939,12 @@ def add_columns_to_market_value_history(conn):
     print("Kolumny 'federation', 'country' i 'ranking' zostały dodane do tabeli 'market_value_history'.")
 
 
-def get_ranking(federation, country):
+async def fetch(session, url):
+    async with session.get(url) as response:
+        return await response.text()
+
+
+async def get_ranking(session, federation, country):
     urls = {
         "UEFA": "https://www.transfermarkt.com/uefa-champions-league/nationenwertung/pokalwettbewerb/CL/plus/0?saison_id=2021",
         "CAF": "https://www.transfermarkt.com/caf-champions-league/nationenwertung/pokalwettbewerb/ACL/plus/0?saison_id=2021",
@@ -955,44 +961,57 @@ def get_ranking(federation, country):
         return None
 
     url = urls[federation]
+    ranking = 0
 
     try:
-        response = requests.get(url, headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        })
+        response_text = await fetch(session, url)
 
-        if response.status_code == 404:
-            print("Received 404 error. Retrying...")
-            for i in range(3):  # Retry up to 3 times
-                time.sleep(2)  # Wait 2 seconds before retrying
-                response = requests.get(url, headers={
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-                })
-                if response.status_code != 404:
-                    break
+        soup = BeautifulSoup(response_text, 'html.parser')
+        rows = soup.find_all('tr', {'class': ['odd', 'even']})
+        for row in rows:
+            cells = row.find_all('td')
+            if len(cells) > 1 and country.lower() in cells[1].text.lower():
+                rank = int(cells[0].text.strip())
+                adjusted_ranking = 100 - (rank - 1) * 2
+                ranking += adjusted_ranking
+                break
 
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            rows = soup.find_all('tr', {'class': ['odd', 'even']})
-            for row in rows:
-                cells = row.find_all('td')
-                if len(cells) > 1 and country.lower() in cells[1].text.lower():
-                    ranking = int(cells[0].text.strip())
-                    # Przekształć ranking na skalę 100-98-96-...
-                    adjusted_ranking = 100 - (ranking - 1) * 2
-                    return adjusted_ranking
-            print(f"Nie udało się znaleźć rankingu dla klubu w kraju {country}.")
-            return None
-        else:
-            print(f"Unexpected status code {response.status_code} from {url}")
-            return None
+        # Dodanie dodatkowego rankingu z Europa League dla UEFA
+        if federation == "UEFA":
+            europa_league_url = urls.get("UEFA_EL")
+            if europa_league_url:
+                response_text = await fetch(session, europa_league_url)
+                soup = BeautifulSoup(response_text, 'html.parser')
+                rows = soup.find_all('tr', {'class': ['odd', 'even']})
+                for row in rows:
+                    cells = row.find_all('td')
+                    if len(cells) > 1 and country.lower() in cells[1].text.lower():
+                        rank = int(cells[0].text.strip())
+                        additional_ranking = (100 - (rank - 1) * 2) / 4  # Dodanie połowy wartości
+                        ranking += additional_ranking
+                        break
+
+        if federation == "CONMEBOL":
+            europa_league_url = urls.get("CONMEBOL_CS")
+            if europa_league_url:
+                response_text = await fetch(session, europa_league_url)
+                soup = BeautifulSoup(response_text, 'html.parser')
+                rows = soup.find_all('tr', {'class': ['odd', 'even']})
+                for row in rows:
+                    cells = row.find_all('td')
+                    if len(cells) > 1 and country.lower() in cells[1].text.lower():
+                        rank = int(cells[0].text.strip())
+                        additional_ranking = (100 - (rank - 1) * 2) / 4  # Dodanie połowy wartości
+                        ranking += additional_ranking
+                        break
+
     except Exception as e:
         print(f"Error fetching the URL {url}: {str(e)}")
-        return None
+
+    return ranking if ranking > 0 else None
 
 
-
-def update_market_value_history_with_rankings(conn, football_teams_info):
+async def update_market_value_history_with_rankings(conn, football_teams_info):
     cursor = conn.cursor()
 
     # Dodanie kolumny dla federacji, kraju i rankingu, jeśli nie istnieją
@@ -1010,54 +1029,36 @@ def update_market_value_history_with_rankings(conn, football_teams_info):
     cursor.execute("SELECT DISTINCT club FROM market_value_history")
     clubs = cursor.fetchall()
 
-    for (club,) in clubs:
-        # Debug: Wyświetl nazwę klubu
-        print(f"Processing club: {club}")
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        for (club,) in clubs:
+            # Znajdź kraj i federację dla klubu
+            team_info = next((info for info in football_teams_info if info[0] == club), None)
 
-        # Znajdź kraj i federację dla klubu
-        team_info = next((info for info in football_teams_info if info[0] == club), None)
+            if team_info:
+                country = team_info[1]
+                federation = team_info[2]
 
-        if team_info:
-            country = team_info[1]
-            federation = team_info[2]
-            print(f"Found team info: {team_info}")
+                tasks.append(get_ranking(session, federation, country))
 
-            # Pobierz ranking z głównych rozgrywek
-            ranking = get_ranking(federation, country)
+        rankings = await asyncio.gather(*tasks)
 
-            # Jeśli brak rankingu, próbujemy z drugich rozgrywek
-            if federation == "UEFA":
-                europa_league_ranking = get_ranking("UEFA_EL", country)
-                if ranking is not None and europa_league_ranking is not None:
-                    ranking += (100 - europa_league_ranking) / 4
+        for (club,), ranking in zip(clubs, rankings):
+            team_info = next((info for info in football_teams_info if info[0] == club), None)
+            if team_info:
+                country = team_info[1]
+                federation = team_info[2]
 
-            elif federation == "CONMEBOL":
-                sudamericana_ranking = get_ranking("CONMEBOL_CS", country)
-                if ranking is not None and sudamericana_ranking is not None:
-                    ranking += (100 - sudamericana_ranking) / 4
-
-            # Debug: Wyświetl informacje o rankingu
-            if ranking is not None:
-                print(f"Final Ranking for {country} is {ranking}")
-            else:
-                ranking = 0
-                print(f"Nie udało się znaleźć rankingu dla klubu {club} w kraju {country}.")
-
-            # Aktualizacja tabeli market_value_history
-            cursor.execute('''
-                UPDATE market_value_history 
-                SET federation = ?, country = ?, ranking = ?
-                WHERE club = ?
-            ''', (federation, country, int(ranking), club))
-        else:
-            print(f"Nie udało się znaleźć informacji o klubie {club}.")
+                # Aktualizacja tabeli market_value_history
+                cursor.execute('''
+                    UPDATE market_value_history 
+                    SET federation = ?, country = ?, ranking = ?
+                    WHERE club = ?
+                ''', (federation, country, int(ranking) if ranking is not None else 10, club))
 
     conn.commit()
 
 
-
-
-# Uruchomienie całego procesu
 # Uruchomienie całego procesu
 def run_scraping_process():
     try:
@@ -1068,7 +1069,6 @@ def run_scraping_process():
         # Dodanie kolumny hashy klubów (jeśli nie została wcześniej dodana)
         add_club_hash_column_to_market_value_history(conn)
         print("Kolumna hashów klubów została dodana (jeśli nie istniała).")
-
 
         # Pobranie danych drużyn
         scrap_squad("https://en.wikipedia.org/wiki/2022_FIFA_World_Cup_squads", conn)
@@ -1095,7 +1095,7 @@ def run_scraping_process():
         print("Historia wartości rynkowej została pobrana i zapisana.")
 
         # Dodajemy informacje o federacji, kraju i rankingu do market_value_history
-        update_market_value_history_with_rankings(conn, football_teams_info)
+        asyncio.run(update_market_value_history_with_rankings(conn, football_teams_info))
         print("Informacje o federacji, kraju i rankingu zostały zaktualizowane.")
 
         # Zamknięcie połączenia z bazą danych
@@ -1104,6 +1104,7 @@ def run_scraping_process():
 
     except Exception as e:
         print(f"Wystąpił błąd: {e}")
+
 
 # Wywołanie funkcji głównej, aby uruchomić cały proces
 run_scraping_process()

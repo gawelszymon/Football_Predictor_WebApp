@@ -8,7 +8,7 @@
       <jdbc-url>jdbc:sqlite:identifier.sqlite</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="world_cup1_teams2022" uuid="4cd23ddd-5785-4a84-b273-408c8a7628eb">
+    <data-source source="LOCAL" name="world_cup1_teams2022" uuid="b5ae9366-e9d3-461d-892c-5defe04c55f1">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
