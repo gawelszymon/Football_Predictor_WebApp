@@ -24,13 +24,23 @@ def create_database(tournament_type, year):
     )
     ''')
 
-    # Utworzenie tabeli dla historii wartości rynkowej
+    # Utworzenie tabeli dla historii wartości rynkowej z dodatkowymi kolumnami na statystyki
     cursor1.execute('''
     CREATE TABLE IF NOT EXISTS market_value_history (
         player_id INTEGER,
         value REAL,
         date TEXT,
         club TEXT,
+        club_hash TEXT,
+        position TEXT,  -- Nowa kolumna dla pozycji zawodnika
+        appearances INTEGER,
+        goals INTEGER,
+        assists INTEGER,
+        yellow_cards INTEGER,
+        red_cards INTEGER,
+        minutes_played INTEGER,
+        clean_sheets INTEGER,  -- Nowa kolumna dla czystych kont (tylko dla bramkarzy)
+        conceded_goals INTEGER,  -- Nowa kolumna dla straconych bramek (tylko dla bramkarzy)
         FOREIGN KEY (player_id) REFERENCES teams (transfermarkt_id)
     )
     ''')
@@ -458,14 +468,20 @@ def add_column_transfermarkt_id(df, conn):
     # Oczyszczanie nazw zawodników przed zapytaniem do transfermarkt
     cleaned_player_names = [clean_player_name(name) for name in player_names]
 
+    # Lista transfermarkt_id do wykluczenia
+    excluded_ids = {9811, 132563, 15412, 123951, 327613, 58074, 652782}
+
     # Asynchroniczne pobieranie transfermarkt_id
     async def main():
         async with aiohttp.ClientSession() as session:
             player_ids = await fetch_transfermarkt_ids(session, cleaned_player_names)
             for player_name, transfermarkt_id in zip(player_names, player_ids):
                 if transfermarkt_id:
-                    cursor.execute("UPDATE teams SET transfermarkt_id = ? WHERE player_name = ?",
-                                   (transfermarkt_id, player_name))
+                    if transfermarkt_id not in excluded_ids:
+                        cursor.execute("UPDATE teams SET transfermarkt_id = ? WHERE player_name = ?",
+                                       (transfermarkt_id, player_name))
+                    else:
+                        print(f"Excluding player {player_name} with Transfermarkt ID {transfermarkt_id}")
                 else:
                     print(f"Skipping player {player_name} due to missing Transfermarkt ID")
             conn.commit()
@@ -1059,12 +1075,155 @@ async def update_market_value_history_with_rankings(conn, football_teams_info, y
     conn.commit()
 
 
-# Uruchomienie całego procesu
+def add_columns_for_goalkeepers(conn):
+    cursor = conn.cursor()
+
+    # Sprawdzenie, czy kolumny dla bramkarzy już istnieją
+    cursor.execute("PRAGMA table_info(market_value_history)")
+    columns = [info[1] for info in cursor.fetchall()]
+
+    if 'clean_sheets' not in columns:
+        cursor.execute('''
+            ALTER TABLE market_value_history
+            ADD COLUMN clean_sheets INTEGER
+        ''')
+
+    if 'conceded_goals' not in columns:
+        cursor.execute('''
+            ALTER TABLE market_value_history
+            ADD COLUMN conceded_goals INTEGER
+        ''')
+
+    conn.commit()
+    print("Kolumny 'clean_sheets' i 'conceded_goals' zostały dodane do tabeli 'market_value_history'.")
+
+
+async def fetch_player_stats(session, player_id, year):
+    url = f"https://www.transfermarkt.com/robert-lewandowski/leistungsdatendetails/spieler/{player_id}/plus/0?saison={year}&verein=&liga=&wettbewerb=&pos=&trainer_id="
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Referer": f"https://www.transfermarkt.com/robert-lewandowski/leistungsdatendetails/spieler/{player_id}/"
+    }
+
+    try:
+        async with session.get(url, headers=headers) as response:
+            if response.status == 200:
+                data = await response.text()
+                soup = BeautifulSoup(data, 'html.parser')
+
+                # Pobieranie pozycji zawodnika
+                position_element = soup.select_one("#tm-main > header > div.data-header__info-box > div > ul:nth-child(2) > li:nth-child(2) > span")
+                position = position_element.text.strip() if position_element else "Unknown"
+
+                # Sprawdzenie, czy zawodnik jest bramkarzem
+                is_goalkeeper = "Goalkeeper" in position
+
+                tfoot = soup.find('tfoot')
+                if tfoot:
+                    stats_table = tfoot.find_all('td')
+                    print(f"Debug: stats_table for player {player_id} - {stats_table}")
+                    print(f"Debug: stats_table length for player {player_id} - {len(stats_table)}")
+
+                    if is_goalkeeper:
+                        # Statystyki dla bramkarzy
+                        appearances = stats_table[3].text.strip() or '0'
+                        yellow_red_cards = stats_table[5].text.strip().split('/')
+                        yellow_cards = yellow_red_cards[0].strip() or '0'
+                        red_cards = yellow_red_cards[2].strip() or '0'
+                        conceded_goals = stats_table[6].text.strip() or '0'
+                        clean_sheets = stats_table[7].text.strip() or '0'
+                        minutes_played = stats_table[8].text.strip().replace(".", "").replace("'", "") or '0'
+
+                        stats = {
+                            "appearances": appearances,
+                            "clean_sheets": clean_sheets,  # Czyste konta
+                            "conceded_goals": conceded_goals,  # Stracone bramki
+                            "yellow_cards": yellow_cards,
+                            "red_cards": red_cards,
+                            "minutes_played": minutes_played,
+                            "position": position
+                        }
+                    else:
+                        # Statystyki dla zawodników z pola
+                        stats = {
+                            "appearances": stats_table[3].text.strip() or '0',
+                            "goals": stats_table[4].text.strip() or '0',
+                            "assists": stats_table[5].text.strip() or '0',
+                            "yellow_cards": stats_table[6].text.strip().split("/")[0].strip() or '0',
+                            "red_cards": stats_table[6].text.strip().split("/")[1].strip() or '0',
+                            "minutes_played": stats_table[7].text.strip().replace("'", "") or '0',
+                            "position": position
+                        }
+
+                    print(f"Debug: Parsed stats for player {player_id} - {stats}")
+                    return stats
+                else:
+                    print(f"No stats found in tfoot for player ID {player_id}.")
+                    return None
+            else:
+                print(f"Failed to retrieve data for player ID {player_id}. Status code: {response.status}")
+                return None
+    except Exception as e:
+        print(f"An error occurred while processing player ID {player_id}: {e}")
+        return None
+
+
+async def save_player_stats_async(player_ids, year, conn):
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_player_stats(session, player_id, year) for player_id in player_ids]
+        player_stats = await asyncio.gather(*tasks)
+
+        cursor = conn.cursor()
+        for player_id, stats in zip(player_ids, player_stats):
+            if stats:
+                try:
+                    if stats["position"] == "Goalkeeper":
+                        cursor.execute('''
+                            UPDATE market_value_history 
+                            SET appearances = ?, clean_sheets = ?, conceded_goals = ?, yellow_cards = ?, red_cards = ?, minutes_played = ?, position = ?
+                            WHERE player_id = ?
+                        ''', (
+                            stats["appearances"],
+                            stats["clean_sheets"],
+                            stats["conceded_goals"],
+                            stats["yellow_cards"],
+                            stats["red_cards"],
+                            stats["minutes_played"],
+                            stats["position"],
+                            player_id
+                        ))
+                    else:
+                        cursor.execute('''
+                            UPDATE market_value_history 
+                            SET appearances = ?, goals = ?, assists = ?, yellow_cards = ?, red_cards = ?, minutes_played = ?, position = ?
+                            WHERE player_id = ?
+                        ''', (
+                            stats["appearances"],
+                            stats["goals"],
+                            stats["assists"],
+                            stats["yellow_cards"],
+                            stats["red_cards"],
+                            stats["minutes_played"],
+                            stats["position"],
+                            player_id
+                        ))
+                    print(f"Inserted stats for player ID {player_id} into the database.")
+                except Exception as e:
+                    print(f"Failed to insert stats for player ID {player_id}: {e}")
+        conn.commit()
+
+
+
+def save_player_stats(player_ids, year, conn):
+    asyncio.run(save_player_stats_async(player_ids, year, conn))
+
+
+# Call this function in your scraping process
 def run_scraping_process(year, tournament):
     try:
         tournament = tournament
         year = year - 1
-        conn = create_database(tournament, year)
+        conn = create_database(tournament, year+1)
         print("Baza danych została utworzona.")
 
         # Dodanie kolumny hashy klubów (jeśli nie została wcześniej dodana)
@@ -1099,6 +1258,10 @@ def run_scraping_process(year, tournament):
         asyncio.run(update_market_value_history_with_rankings(conn, football_teams_info, year))
         print("Informacje o federacji, kraju i rankingu zostały zaktualizowane.")
 
+        # Pobieranie i zapisywanie statystyk zawodników
+        save_player_stats(player_ids, year, conn)
+        print("Statystyki zawodników zostały pobrane i zapisane.")
+
         # Zamknięcie połączenia z bazą danych
         conn.close()
         print("Połączenie z bazą danych zostało zamknięte.")
@@ -1106,6 +1269,6 @@ def run_scraping_process(year, tournament):
     except Exception as e:
         print(f"Wystąpił błąd: {e}")
 
-
 # Wywołanie funkcji głównej, aby uruchomić cały proces dla konkretnego roku
 run_scraping_process(2022, "world_cup1")
+
