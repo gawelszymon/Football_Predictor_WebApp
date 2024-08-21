@@ -8,6 +8,7 @@ import pandas as pd
 import sqlite3
 import re
 
+
 def create_database(tournament_type, year):
     # Utworzenie połączenia z bazą danych SQLite
     conn1 = sqlite3.connect(f'{tournament_type}_teams{year}.db')
@@ -403,26 +404,26 @@ def clean_player_name(player_name):
         "Abdulellah Al-Malki": "Abdulelah Al-Malki",
         "Filip Đuričić": "Filip Djuricic",
         "Lawrence Ati-Zigi": "Lawrence Ati Zigi",
-         "Yoon Jong-gyu": "Jong-gyu Yoon",
-         "Kim Jin-su": "Jin-su Kim",
-         "Kim Min-jae": "Min-jae Kim",
-         "Hwang In-beom": "In-beom Hwang",
-         "Paik Seung-ho": "Seung-ho Paik",
-         "Cho Gue-sung": "Gue-sung Cho",
-         "Song Bum-keun": "Bum-keun Song",
-         "Son Jun-ho": "Jun-ho Son",
-         "Na Sang-ho": "Sang-ho Na",
-         "Lee Kang-in": "Kang-in Lee",
-         "Kwon Kyung-won": "Kyung-won Kwon",
-         "Kwon Chang-hoon": "Chang-hoon Kwon",
-         "Kim Tae-hwan": "Tae-hwan Kim",
-         "Cho Yu-min": "Yu-min Cho",
-         "Jeong Woo-yeong": "Woo-yeong Jeong",
-         "Song Min-kyu": "Min-kyu Song",
-         "Kim Moon-hwan": "Moon-hwan Kim",
-         "Munir Mohamedi": "Munir El Kajoui",
-         "Musab Kheder": "Musab Khoder",
-     }
+        "Yoon Jong-gyu": "Jong-gyu Yoon",
+        "Kim Jin-su": "Jin-su Kim",
+        "Kim Min-jae": "Min-jae Kim",
+        "Hwang In-beom": "In-beom Hwang",
+        "Paik Seung-ho": "Seung-ho Paik",
+        "Cho Gue-sung": "Gue-sung Cho",
+        "Song Bum-keun": "Bum-keun Song",
+        "Son Jun-ho": "Jun-ho Son",
+        "Na Sang-ho": "Sang-ho Na",
+        "Lee Kang-in": "Kang-in Lee",
+        "Kwon Kyung-won": "Kyung-won Kwon",
+        "Kwon Chang-hoon": "Chang-hoon Kwon",
+        "Kim Tae-hwan": "Tae-hwan Kim",
+        "Cho Yu-min": "Yu-min Cho",
+        "Jeong Woo-yeong": "Woo-yeong Jeong",
+        "Song Min-kyu": "Min-kyu Song",
+        "Kim Moon-hwan": "Moon-hwan Kim",
+        "Munir Mohamedi": "Munir El Kajoui",
+        "Musab Kheder": "Musab Khoder"
+    }
     return replacements.get(player_name, player_name)
 
 
@@ -453,7 +454,8 @@ def scrap_squad(url, conn1):
                     player_name = clean_player_name(player_name)
                     teams.append((team_id, team_name, player_name))
                     cursor1 = conn1.cursor()
-                    cursor1.execute("INSERT INTO teams (team_id, team, player_name) VALUES (?, ?, ?)", (team_id, team_name, player_name))
+                    cursor1.execute("INSERT INTO teams (team_id, team, player_name) VALUES (?, ?, ?)",
+                                    (team_id, team_name, player_name))
                     conn1.commit()
         else:
             print("Nie znaleziono nagłówka 'h3' przed tabelą.")
@@ -488,6 +490,7 @@ def add_column_transfermarkt_id(df, conn):
 
     asyncio.run(main())
 
+
 def convert_value(value):
     value = value.replace(',', '.')
     if 'tys' in value:
@@ -499,6 +502,7 @@ def convert_value(value):
     else:
         value = float(value.replace('€', '').strip())
     return value
+
 
 # Map Polish month abbreviations to month numbers
 MONTH_MAP = {
@@ -516,6 +520,7 @@ MONTH_MAP = {
     'gru': '12'
 }
 
+
 def parse_polish_date(date_str):
     # Replace Polish month abbreviation with corresponding number
     for polish_month, month_number in MONTH_MAP.items():
@@ -524,6 +529,7 @@ def parse_polish_date(date_str):
             break
     # Convert the date string to datetime object
     return datetime.datetime.strptime(date_str, "%d %m %Y")
+
 
 def add_club_hash_column_to_market_value_history(conn):
     cursor = conn.cursor()
@@ -542,6 +548,7 @@ def add_club_hash_column_to_market_value_history(conn):
         print("Kolumna 'club_hash' została dodana do tabeli 'market_value_history'.")
     else:
         print("Kolumna 'club_hash' już istnieje w tabeli 'market_value_history'.")
+
 
 async def fetch_market_value_history(session, player_id, conn, event_date):
     url = f"https://www.transfermarkt.pl/ceapi/marketValueDevelopment/graph/{player_id}"
@@ -599,7 +606,8 @@ async def fetch_market_value_history(session, player_id, conn, event_date):
                                 closest_record['club_hash']
                             ))
                             conn.commit()
-                            print(f"Inserted record for player ID {player_id}: {market_value_converted} on {closest_record['date'].strftime('%Y-%m-%d')}, club hash: {closest_record['club_hash']}")
+                            print(
+                                f"Inserted record for player ID {player_id}: {market_value_converted} on {closest_record['date'].strftime('%Y-%m-%d')}, club hash: {closest_record['club_hash']}")
 
                         except ValueError as ve:
                             print(f"Error converting market value '{closest_record['value']}': {ve}")
@@ -610,18 +618,15 @@ async def fetch_market_value_history(session, player_id, conn, event_date):
     except Exception as e:
         print(f"An error occurred while processing player ID {player_id}: {e}")
 
+
 async def save_market_value_history_async(player_ids, conn, event_date):
     async with aiohttp.ClientSession() as session:
         tasks = [fetch_market_value_history(session, player_id, conn, event_date) for player_id in player_ids]
         await asyncio.gather(*tasks)
 
+
 def save_market_value_history(player_ids, conn, event_date):
     asyncio.run(save_market_value_history_async(player_ids, conn, event_date))
-
-
-
-
-
 
 
 football_teams_info = [
@@ -960,7 +965,7 @@ async def fetch(session, url):
         return await response.text()
 
 
-async def get_ranking(session, federation, country, year):
+async def get_ranking(session, federation, country, year, confederation_multiplier):
     urls = {
         "UEFA": f"https://www.transfermarkt.com/uefa-champions-league/nationenwertung/pokalwettbewerb/CL/plus/0?saison_id={year}",
         "CAF": f"https://www.transfermarkt.com/caf-champions-league/nationenwertung/pokalwettbewerb/ACL/plus/0?saison_id={year}",
@@ -1024,7 +1029,9 @@ async def get_ranking(session, federation, country, year):
     except Exception as e:
         print(f"Error fetching the URL {url}: {str(e)}")
 
-    return ranking if ranking > 0 else None
+    final_ranking = ranking * confederation_multiplier
+
+    return final_ranking if final_ranking > 0 else None
 
 
 async def update_market_value_history_with_rankings(conn, football_teams_info, year):
@@ -1045,6 +1052,16 @@ async def update_market_value_history_with_rankings(conn, football_teams_info, y
     cursor.execute("SELECT DISTINCT club FROM market_value_history")
     clubs = cursor.fetchall()
 
+    # Definiowanie współczynników dla każdej konfederacji
+    confederation_multipliers = {
+        "UEFA": 54,
+        "CONMEBOL": 39,
+        "AFC": 11,
+        "CAF": 8,
+        "CONCACAF": 7,
+        "OFC": 1
+    }
+
     async with aiohttp.ClientSession() as session:
         tasks = []
         for (club,) in clubs:
@@ -1055,7 +1072,9 @@ async def update_market_value_history_with_rankings(conn, football_teams_info, y
                 country = team_info[1]
                 federation = team_info[2]
 
-                tasks.append(get_ranking(session, federation, country, year))
+                confederation_multiplier = confederation_multipliers.get(federation, 1)
+
+                tasks.append(get_ranking(session, federation, country, year, confederation_multiplier))
 
         rankings = await asyncio.gather(*tasks)
 
@@ -1112,7 +1131,8 @@ async def fetch_player_stats(session, player_id, year):
                 soup = BeautifulSoup(data, 'html.parser')
 
                 # Pobieranie pozycji zawodnika
-                position_element = soup.select_one("#tm-main > header > div.data-header__info-box > div > ul:nth-child(2) > li:nth-child(2) > span")
+                position_element = soup.select_one(
+                    "#tm-main > header > div.data-header__info-box > div > ul:nth-child(2) > li:nth-child(2) > span")
                 position = position_element.text.strip() if position_element else "Unknown"
 
                 # Sprawdzenie, czy zawodnik jest bramkarzem
@@ -1145,13 +1165,14 @@ async def fetch_player_stats(session, player_id, year):
                         }
                     else:
                         # Statystyki dla zawodników z pola
+                        minutes_played = stats_table[7].text.strip().replace(".", "").replace("'", "") or '0'
                         stats = {
                             "appearances": stats_table[3].text.strip() or '0',
                             "goals": stats_table[4].text.strip() or '0',
                             "assists": stats_table[5].text.strip() or '0',
                             "yellow_cards": stats_table[6].text.strip().split("/")[0].strip() or '0',
                             "red_cards": stats_table[6].text.strip().split("/")[1].strip() or '0',
-                            "minutes_played": stats_table[7].text.strip().replace("'", "") or '0',
+                            "minutes_played": minutes_played,
                             "position": position
                         }
 
@@ -1213,7 +1234,6 @@ async def save_player_stats_async(player_ids, year, conn):
         conn.commit()
 
 
-
 def save_player_stats(player_ids, year, conn):
     asyncio.run(save_player_stats_async(player_ids, year, conn))
 
@@ -1223,7 +1243,7 @@ def run_scraping_process(year, tournament):
     try:
         tournament = tournament
         year = year - 1
-        conn = create_database(tournament, year+1)
+        conn = create_database(tournament, year + 1)
         print("Baza danych została utworzona.")
 
         # Dodanie kolumny hashy klubów (jeśli nie została wcześniej dodana)
@@ -1269,6 +1289,7 @@ def run_scraping_process(year, tournament):
     except Exception as e:
         print(f"Wystąpił błąd: {e}")
 
-# Wywołanie funkcji głównej, aby uruchomić cały proces dla konkretnego roku
-run_scraping_process(2022, "world_cup1")
 
+# Wywołanie funkcji głównej, aby uruchomić cały proces dla konkretnego roku
+# run_scraping_process(2022, "world_cup1")
+run_scraping_process(2018, "world_cup1")
