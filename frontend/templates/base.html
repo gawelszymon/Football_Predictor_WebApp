@@ -53,7 +53,10 @@
                             <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" aria-current="page" href="{{ url_for('index') }}">Predictor</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'matches' %}active{% endif %}" href="{{url_for('matches')}}">Matches</a>
+                            <a class="nav-link {% if request.endpoint == 'groups' %}active{% endif %}" href="{{url_for('groups')}}">Groups</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'matches' %}active{% endif %}" href="{{ url_for('matches') }}">Matches</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'bracket' %}active{% endif %}" href="{{ url_for('bracket') }}">Tournament bracket</a>
@@ -61,6 +64,7 @@
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}">About</a>
                         </li>
+                        
                     </ul>
                     <!-- <form class="d-flex">
                             <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
