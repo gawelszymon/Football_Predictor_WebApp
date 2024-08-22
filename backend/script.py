@@ -32,7 +32,6 @@ def create_database(tournament_type, year):
         value REAL,
         date TEXT,
         club TEXT,
-        club_hash TEXT,
         position TEXT,  -- Nowa kolumna dla pozycji zawodnika
         appearances INTEGER,
         goals INTEGER,
@@ -65,6 +64,18 @@ async def fetch(session, url):
 
 
 async def get_transfermarkt_id(session, player_name):
+    if player_name == "Jô":
+        return 34156
+    if player_name == "Pak Nam-chol II":
+        return 114610
+    if player_name == "Pak Nam-chol I":
+        return 68565
+    if player_name == "Ki Sung-yueng":
+        return 81796
+    if player_name == "DUnited Statesn Petkovic":
+        return 997774
+    if player_name == "Hamad Al Montashari":
+        return 31662
     if player_name in player_id_cache:
         print(f"Using cached ID for {player_name}: {player_id_cache[player_name]}")
         return player_id_cache[player_name]
@@ -290,7 +301,6 @@ def clean_player_name(player_name):
         "Lee Seung-yeoul": "Seung-yeoul Lee",
         "Kim Jae-sung": "Jae-sung Kim",
         "Lee Jung-soo": "Jeong-soo Lee",
-        "Ki Sung-yueng": "Sung-yueng Ki",
         "Lee Chung-yong": "Chung-yong Lee",
         "Jung Sung-ryong": "Sung-ryong Jung",
         "Yeom Ki-hun": "Ki-hun Yeom",
@@ -422,7 +432,8 @@ def clean_player_name(player_name):
         "Song Min-kyu": "Min-kyu Song",
         "Kim Moon-hwan": "Moon-hwan Kim",
         "Munir Mohamedi": "Munir El Kajoui",
-        "Musab Kheder": "Musab Khoder"
+        "Musab Kheder": "Musab Khoder",
+        "Vince Grella": "Vincenzo Grella",
     }
     return replacements.get(player_name, player_name)
 
@@ -470,20 +481,14 @@ def add_column_transfermarkt_id(df, conn):
     # Oczyszczanie nazw zawodników przed zapytaniem do transfermarkt
     cleaned_player_names = [clean_player_name(name) for name in player_names]
 
-    # Lista transfermarkt_id do wykluczenia
-    excluded_ids = {9811, 132563, 15412, 123951, 327613, 58074, 652782}
-
     # Asynchroniczne pobieranie transfermarkt_id
     async def main():
         async with aiohttp.ClientSession() as session:
             player_ids = await fetch_transfermarkt_ids(session, cleaned_player_names)
             for player_name, transfermarkt_id in zip(player_names, player_ids):
                 if transfermarkt_id:
-                    if transfermarkt_id not in excluded_ids:
-                        cursor.execute("UPDATE teams SET transfermarkt_id = ? WHERE player_name = ?",
-                                       (transfermarkt_id, player_name))
-                    else:
-                        print(f"Excluding player {player_name} with Transfermarkt ID {transfermarkt_id}")
+                    cursor.execute("UPDATE teams SET transfermarkt_id = ? WHERE player_name = ?",
+                                    (transfermarkt_id, player_name))
                 else:
                     print(f"Skipping player {player_name} due to missing Transfermarkt ID")
             conn.commit()
@@ -530,26 +535,6 @@ def parse_polish_date(date_str):
     # Convert the date string to datetime object
     return datetime.datetime.strptime(date_str, "%d %m %Y")
 
-
-def add_club_hash_column_to_market_value_history(conn):
-    cursor = conn.cursor()
-
-    # Sprawdzenie, czy kolumna 'club_hash' już istnieje
-    cursor.execute("PRAGMA table_info(market_value_history)")
-    columns = [info[1] for info in cursor.fetchall()]
-
-    if 'club_hash' not in columns:
-        # Jeśli kolumna nie istnieje, dodajemy ją
-        cursor.execute('''
-            ALTER TABLE market_value_history
-            ADD COLUMN club_hash TEXT
-        ''')
-        conn.commit()
-        print("Kolumna 'club_hash' została dodana do tabeli 'market_value_history'.")
-    else:
-        print("Kolumna 'club_hash' już istnieje w tabeli 'market_value_history'.")
-
-
 async def fetch_market_value_history(session, player_id, conn, event_date):
     url = f"https://www.transfermarkt.pl/ceapi/marketValueDevelopment/graph/{player_id}"
     headers = {
@@ -587,8 +572,7 @@ async def fetch_market_value_history(session, player_id, conn, event_date):
                                     'player_id': player_id,
                                     'value': market_value,
                                     'date': date_mv_obj,
-                                    'club': club,
-                                    'club_hash': generate_team_id(club)  # Generate club hash
+                                    'club': club
                                 }
 
                     if closest_record:
@@ -596,18 +580,17 @@ async def fetch_market_value_history(session, player_id, conn, event_date):
                             market_value_converted = convert_value(closest_record['value'])
                             cursor = conn.cursor()
                             cursor.execute("""
-                                INSERT INTO market_value_history (player_id, value, date, club, club_hash) 
-                                VALUES (?, ?, ?, ?, ?)
+                                INSERT INTO market_value_history (player_id, value, date, club) 
+                                VALUES (?, ?, ?, ?)
                             """, (
                                 closest_record['player_id'],
                                 market_value_converted,
                                 closest_record['date'].strftime('%Y-%m-%d'),
-                                closest_record['club'],
-                                closest_record['club_hash']
+                                closest_record['club']
                             ))
                             conn.commit()
                             print(
-                                f"Inserted record for player ID {player_id}: {market_value_converted} on {closest_record['date'].strftime('%Y-%m-%d')}, club hash: {closest_record['club_hash']}")
+                                f"Inserted record for player ID {player_id}: {market_value_converted} on {closest_record['date'].strftime('%Y-%m-%d')}")
 
                         except ValueError as ve:
                             print(f"Error converting market value '{closest_record['value']}': {ve}")
@@ -661,7 +644,6 @@ football_teams_info = [
     ("Al-Wakrah SC", "Qatar", "AFC"),
     ("Al-Wehda FC", "Saudi Arabia", "AFC"),
     ("Alanyaspor", "Türkiye", "UEFA"),
-    ("Amiens SC", "France", "UEFA"),
     ("Antalyaspor", "Türkiye", "UEFA"),
     ("Aston Villa", "England", "UEFA"),
     ("Atalanta BC", "Italy", "UEFA"),
@@ -926,7 +908,599 @@ football_teams_info = [
     ("Orlando City SC", "United States", "CONCACAF"),
     ("Los Angeles Galaxy", "United States", "CONCACAF"),
     ("Asante Kotoko SC", "Ghana", "CAF"),
-    ("Daejeon Hana Citizen", "Korea, South", "AFC")
+    ("Daejeon Hana Citizen", "Korea, South", "AFC"),
+    ("Rubin Kazań", "Russia", "UEFA"),
+    ("Spartak Moskwa", "Russia", "UEFA"),
+    ("Lokomotiw Moskwa", "Russia", "UEFA"),
+    ("Al-Taawoun FC", "Saudi Arabia", "AFC"),
+    ("CSKA Moskwa", "Russia", "UEFA"),
+    ("Masr El Makasa", "Egypt", "CAF"),
+    ("Akhmat Grozny", "Russia", "UEFA"),
+    ("Wigan Athletic", "England", "UEFA"),
+    ("CA Peñarol", "Uruguay", "CONMEBOL"),
+    ("West Bromwich Albion", "England", "UEFA"),
+    ("Cruzeiro Belo Horizonte", "Brazil", "CONMEBOL"),
+    ("Genoa CFC", "Italy", "UEFA"),
+    ("Girona FC", "Spain", "UEFA"),
+    ("Arsenal Tula", "Russia", "UEFA"),
+    ("Saipa FC", "Iran", "AFC"),
+    ("Zob Ahan Esfahan", "Iran", "AFC"),
+    ("Östersunds FK", "Sweden", "UEFA"),
+    ("FK Krasnodar", "Russia", "UEFA"),
+    ("Amkar Perm", "Russia", "UEFA"),
+    ("Al-Raed SFC", "Saudi Arabia", "AFC"),
+    ("CA Boca Juniors", "Argentina", "CONMEBOL"),
+    ("CS Marítimo", "Portugal", "UEFA"),
+    ("Levante UD", "Spain", "UEFA"),
+    ("Renaissance de Berkane", "Morocco", "CAF"),
+    ("Al-Jazira Club", "United Arab Emirates", "AFC"),
+    ("Ittihad Tanger", "Morocco", "CAF"),
+    ("Padideh Khorasan FC", "Iran", "AFC"),
+    ("Málaga CF", "Spain", "UEFA"),
+    ("AZ Alkmaar", "Netherlands", "UEFA"),
+    ("Basaksehir FK", "Turkey", "UEFA"),
+    ("Suwon Samsung Bluewings", "South Korea", "AFC"),
+    ("FC Millwall", "England", "UEFA"),
+    ("Yokohama F. Marinos", "Japan", "AFC"),
+    ("Grasshopper Club Zurych", "Switzerland", "UEFA"),
+    ("Hull City", "England", "UEFA"),
+    ("Newcastle United Jets", "Australia", "AFC"),
+    ("Yeni Malatyaspor", "Turkey", "UEFA"),
+    ("Puebla FC", "Mexico", "CONCACAF"),
+    ("Monarcas Morelia", "Mexico", "CONCACAF"),
+    ("Universitario de Deportes", "Peru", "CONMEBOL"),
+    ("Portland Timbers", "United States", "CONCACAF"),
+    ("Aalborg BK", "Denmark", "UEFA"),
+    ("Tiburones Rojos de Veracruz", "Mexico", "CONCACAF"),
+    ("Lobos BUAP (- 2019)", "Mexico", "CONCACAF"),
+    ("Tigres UANL", "Mexico", "CONCACAF"),
+    ("Universidad Técnica de Cajamarca", "Peru", "CONMEBOL"),
+    ("Ipswich Town", "England", "UEFA"),
+    ("Club Alianza Lima", "Peru", "CONMEBOL"),
+    ("Hebei China Fortune", "China", "AFC"),
+    ("Hibernian FC", "Scotland", "UEFA"),
+    ("FBC Melgar", "Peru", "CONMEBOL"),
+    ("Bursaspor", "Turkey", "UEFA"),
+    ("FC Girondins Bordeaux", "France", "UEFA"),
+    ("Deportivo de La Coruña", "Spain", "UEFA"),
+    ("FK Rostov", "Russia", "UEFA"),
+    ("Hammarby IF", "Sweden", "UEFA"),
+    ("KV Oostende (-2024)", "Belgium", "UEFA"),
+    ("FC Roskilde", "Denmark", "UEFA"),
+    ("Dalian Yifang", "China", "AFC"),
+    ("HNK Rijeka", "Croatia", "UEFA"),
+    ("Randers FC", "Denmark", "UEFA"),
+    ("Göztepe", "Turkey", "UEFA"),
+    ("UD Las Palmas", "Spain", "UEFA"),
+    ("KSC Lokeren (- 2020)", "Belgium", "UEFA"),
+    ("Dynamo Kijów", "Ukraine", "UEFA"),
+    ("Tianjin Teda", "China", "AFC"),
+    ("FC Augsburg", "Germany", "UEFA"),
+    ("Udinese Calcio", "Italy", "UEFA"),
+    ("1.FSV Mainz 05", "Germany", "UEFA"),
+    ("Changchun Yatai", "China", "AFC"),
+    ("RC Deportivo Fabril", "Spain", "UEFA"),
+    ("Grêmio Porto Alegre", "Brazil", "CONMEBOL"),
+    ("ADO Den Haag", "Netherlands", "UEFA"),
+    ("Levski Sofia", "Bulgaria", "UEFA"),
+    ("Kardemir Karabükspor", "Turkey", "UEFA"),
+    ("FC Sao Paulo", "Brazil", "CONMEBOL"),
+    ("FC Crotone", "Italy", "UEFA"),
+    ("Chippa United", "South Africa", "CAF"),
+    ("SV Werder Bremen", "Germany", "UEFA"),
+    ("Santos de Guápiles FC", "Costa Rica", "CONCACAF"),
+    ("FC Nantes", "France", "UEFA"),
+    ("Kasimpasa", "Turkey", "UEFA"),
+    ("SK Rapid Wiedeń", "Austria", "UEFA"),
+    ("Rionegro Águilas", "Colombia", "CONMEBOL"),
+    ("FC Reading", "England", "UEFA"),
+    ("Sport Club Corinthians Paulista", "Brazil", "CONMEBOL"),
+    ("Vitoria Guimarães SC", "Portugal", "UEFA"),
+    ("Hapoel Beer Sheva", "Israel", "UEFA"),
+    ("AFC Sunderland", "England", "UEFA"),
+    ("Deportivo Municipal", "Peru", "CONMEBOL"),
+    ("Deportivo Saprissa", "Costa Rica", "CONCACAF"),
+    ("FC Kopenhaga", "Denmark", "UEFA"),
+    ("RCD Espanyol", "Spain", "UEFA"),
+    ("FC Lausanne-Sport", "Switzerland", "UEFA"),
+    ("Beijing Guoan", "China", "AFC"),
+    ("Minnesota United FC", "United States", "CONCACAF"),
+    ("Vancouver Whitecaps FC", "Canada", "CONCACAF"),
+    ("LD Alajuelense", "Costa Rica", "CONCACAF"),
+    ("FK Partizan Belgrad", "Serbia", "UEFA"),
+    ("Hamburger SV", "Germany", "UEFA"),
+    ("PAOK Saloniki", "Greece", "UEFA"),
+    ("FC Everton", "England", "UEFA"),
+    ("RSC Anderlecht", "Belgium", "UEFA"),
+    ("Trabzonspor", "Turkey", "UEFA"),
+    ("Cercle Brügge", "Belgium", "UEFA"),
+    ("Newcastle United", "England", "UEFA"),
+    ("KRC Genk", "Belgium", "UEFA"),
+    ("Maccabi Tel Aviv", "Israel", "UEFA"),
+    ("Crystal Palace", "England", "UEFA"),
+    ("CA Boca Juniors", "Argentina", "CONMEBOL"),
+    ("Crvena Zvezda Belgrad", "Serbia", "UEFA"),
+    ("SD Eibar", "Spain", "UEFA"),
+    ("Aberdeen FC", "Scotland", "UEFA"),
+    ("SV Sandhausen", "Germany", "UEFA"),
+    ("Eintracht Frankfurt", "Germany", "UEFA"),
+    ("Western Sydney Wanderers", "Australia", "AFC"),
+    ("Antalyaspor", "Turkey", "UEFA"),
+    ("1.FC Köln", "Germany", "UEFA"),
+    ("FC Toulouse", "France", "UEFA"),
+    ("Brighton & Hove Albion", "England", "UEFA"),
+    ("New York City FC", "United States", "CONCACAF"),
+    ("Los Angeles Galaxy", "United States", "CONCACAF"),
+    ("CF Pachuca", "Mexico", "CONCACAF"),
+    ("RC Deportivo Fabril", "Spain", "UEFA"),
+    ("VfL Wolfsburg", "Germany", "UEFA"),
+    ("KVRS Waasland - SK Beveren", "Belgium", "UEFA"),
+    ("Al-Ain FC", "United Arab Emirates", "AFC"),
+    ("Atlético Bucaramanga", "Colombia", "CONMEBOL"),
+    ("Huachipato FC", "Chile", "CONMEBOL"),
+    ("San Jose Earthquakes", "United States", "CONCACAF"),
+    ("CD Plaza Amador", "Panama", "CONCACAF"),
+    ("FC Dinamo 1948", "Romania", "UEFA"),
+    ("Boavista Porto FC", "Portugal", "UEFA"),
+    ("Kasimpasa", "Turkey", "UEFA"),
+    ("Esperance Tunis", "Tunisia", "CAF"),
+    ("Etoile Sportive du Sahel", "Tunisia", "CAF"),
+    ("CS Sfaxien", "Tunisia", "CAF"),
+    ("Cafetaleros de Tapachula", "Mexico", "CONCACAF"),
+    ("OGC Nice", "France", "UEFA"),
+    ("Sociedade Esportiva Palmeiras", "Brazil", "CONMEBOL"),
+    ("Club Africain Tunis", "Tunisia", "CAF"),
+    ("KAA Gent U21", "Belgium", "UEFA"),
+    ("Deportivo Cali", "Colombia", "CONMEBOL"),
+    ("Vissel Kobe", "Japan", "AFC"),
+    ("Montpellier HSC", "France", "UEFA"),
+    ("Sagan Tosu", "Japan", "AFC"),
+    ("Once Caldas", "Colombia", "CONMEBOL"),
+    ("Al-Ettifaq FC", "Saudi Arabia", "AFC"),
+    ("Olimpia Asunción", "Paraguay", "CONMEBOL"),
+    ("Deportivo Alavés", "Spain", "UEFA"),
+    ("Kashima Antlers", "Japan", "AFC"),
+    ("CSD Municipal", "Guatemala", "CONCACAF"),
+    ("Deportes Tolima", "Colombia", "CONMEBOL"),
+    ("Jeonbuk Hyundai Motors", "South Korea", "AFC"),
+    ("Gamba Osaka", "Japan", "AFC"),
+    ("Hamburger SV", "Germany", "UEFA"),
+    ("Ludogorets Razgrad", "Bulgaria", "UEFA"),
+    ("FC Metz", "France", "UEFA"),
+    ("Kashiwa Reysol", "Japan", "AFC"),
+    ("DAC Dunajska Streda", "Slovakia", "UEFA"),
+    ("Houston Dynamo", "United States", "CONCACAF"),
+    ("Stade Rennais FC", "France", "UEFA"),
+    ("Dijon FCO", "France", "UEFA"),
+    ("Al-Batin FC", "Saudi Arabia", "AFC"),
+    ("Górnik Zabrze", "Poland", "UEFA"),
+    ("SPAL 2013", "Italy", "UEFA"),
+    ("Horoya AC", "Guinea", "CAF"),
+    ("Birmingham City", "England", "UEFA"),
+    ("FC Girondins Bordeaux", "France", "UEFA"),
+    ("Hellas Verona", "Italy", "UEFA"),
+    ("Fortuna Düsseldorf", "Germany", "UEFA"),
+    ("CD Numancia", "Spain", "UEFA"),
+    ("Bez klubu", "Unknown", "Unknown"),
+    ("CA Talleres", "Argentina", "CONMEBOL"),
+    ("Vålerenga Fotball Elite", "Norway", "UEFA"),
+    ("FC Nordsjaelland", "Denmark", "UEFA"),
+    ("Enyimba Aba", "Nigeria", "CAF"),
+    ("Szachtar Donieck", "Ukraine", "UEFA"),
+    ("Deportivo Toluca", "Mexico", "CONCACAF"),
+    ("Sangju Sangmu", "South Korea", "AFC"),
+    ("Incheon United", "South Korea", "AFC"),
+    ("EA Guingamp", "France", "UEFA"),
+    ("Cerezo Osaka", "Japan", "AFC"),
+    ("Atlas Guadalajara", "Mexico", "CONCACAF"),
+    ("Club Universidad de Chile", "Chile", "CONMEBOL"),
+    ("Jeju United", "South Korea", "AFC"),
+    ("LB Châteauroux", "France", "UEFA"),
+    ("KAS Eupen", "Belgium", "UEFA"),
+    ("Horoya AC", "Guinea", "CAF"),
+    ("Santos de Guápiles FC", "Costa Rica", "CONCACAF"),
+    ("Alanyaspor", "Turkey", "UEFA"),
+    ("Birmingham City", "England", "UEFA"),
+    ("Etoile Sportive du Sahel", "Tunisia", "CAF"),
+    ("Hannover 96", "Germany", "UEFA"),
+    ("Górnik Zabrze", "Poland", "UEFA"),
+    ("Guangzhou Evergrande Taobao", "China", "AFC"),
+    ("OGC Nice", "France", "UEFA"),
+    ("SK Rapid Wiedeń", "Austria", "UEFA"),
+    ("Legia Warszawa", "Poland", "UEFA"),
+    ("Tianjin Quanjian", "China", "AFC"),
+    ("Kawasaki Frontale", "Japan", "AFC"),
+    ("Sociedade Esportiva Palmeiras", "Brazil", "CONMEBOL"),
+    ("SPAL 2013", "Italy", "UEFA"),
+    ("Amiens SC", "France", "UEFA"),
+    ("Fortuna Düsseldorf", "Germany", "UEFA"),
+    ("Lechia Gdańsk", "Poland", "UEFA"),
+    ("Europa FC", "Gibraltar", "UEFA"),
+    ("Nieznany", "Brak", "Brak"),
+    ("FSV Frankfurt", "Germany", "UEFA"),
+    ("Lokomotiv Moskau", "Russia", "UEFA"),
+    ("Preston North End", "England", "UEFA"),
+    ("FC Sion", "Switzerland", "UEFA"),
+    ("Malmö FF", "Sweden", "UEFA"),
+    ("NK Lokomotiva Zagreb", "Croatia", "UEFA"),
+    ("CD Universidad Católica", "Chile", "CONMEBOL"),
+    ("Heracles Almelo", "Netherlands", "UEFA"),
+    ("FC Twente Enschede", "Netherlands", "UEFA"),
+    ("Querétaro FC", "Mexico", "CONCACAF"),
+    ("Benfika Lizbona B", "Portugal", "UEFA"),
+    ("AC Ajaccio", "France", "UEFA"),
+    ("Melbourne Victory", "Australia", "AFC"),
+    ("CSD Colo-Colo", "Chile", "CONMEBOL"),
+    ("Zulte Waregem", "Belgium", "UEFA"),
+    ("Brisbane Roar", "Australia", "AFC"),
+    ("FK Austria Wiedeń", "Austria", "UEFA"),
+    ("Panathinaikos FC", "Greece", "UEFA"),
+    ("Independiente Santa Fe", "Colombia", "CONMEBOL"),
+    ("CA San Lorenzo de Almagro", "Argentina", "CONMEBOL"),
+    ("Caykur Rizespor", "Turkey", "UEFA"),
+    ("Santos FC", "Brazil", "CONMEBOL"),
+    ("Stabæk Fotball", "Norway", "UEFA"),
+    ("Cagliari Calcio", "Italy", "UEFA"),
+    ("Granada CF", "Spain", "UEFA"),
+    ("TSV 1860 München", "Germany", "UEFA"),
+    ("Shandong Luneng Taishan", "China", "AFC"),
+    ("AS Saint-Étienne", "France", "UEFA"),
+    ("AIK", "Sweden", "UEFA"),
+    ("FC Utrecht", "Netherlands", "UEFA"),
+    ("Sanfrecce Hiroshima", "Japan", "AFC"),
+    ("AS Nancy-Lorraine", "France", "UEFA"),
+    ("Catania Calcio", "Italy", "UEFA"),
+    ("1.FC Nürnberg", "Germany", "UEFA"),
+    ("Rosenborg BK", "Norway", "UEFA"),
+    ("Júbilo Iwata", "Japan", "AFC"),
+    ("Kubań Krasnodar (-2018)", "Russia", "UEFA"),
+    ("Aalesunds FK", "Norway", "UEFA"),
+    ("Parma FC", "Italy", "UEFA"),
+    ("US Palermo", "Italy", "UEFA"),
+    ("Real Zaragoza", "Spain", "UEFA"),
+    ("Botafogo de Futebol e Regatas", "Brazil", "CONMEBOL"),
+    ("Vitesse Arnhem", "Netherlands", "UEFA"),
+    ("Deportivo Quito", "Ecuador", "CONMEBOL"),
+    ("CS Emelec", "Ecuador", "CONMEBOL"),
+    ("Barcelona SC Guayaquil", "Ecuador", "CONMEBOL"),
+    ("CD Chivas USA", "United States", "CONCACAF"),
+    ("CD Motagua Tegucigalpa", "Honduras", "CONCACAF"),
+    ("SC Bastia", "France", "UEFA"),
+    ("CD Olimpia", "Honduras", "CONCACAF"),
+    ("CD Real Sociedad de Tocoa", "Honduras", "CONCACAF"),
+    ("Wisła Kraków", "Poland", "UEFA"),
+    ("Fethiyespor", "Turkey", "UEFA"),
+    ("VfR Aalen", "Germany", "UEFA"),
+    ("CD El Nacional", "Ecuador", "CONMEBOL"),
+    ("Guizhou Renhe", "China", "AFC"),
+    ("NEC Nijmegen", "Netherlands", "UEFA"),
+    ("FK Borac Banja Luka", "Bosnia and Herzegovina", "UEFA"),
+    ("Istanbul Büyüksehir Belediyespor", "Turkey", "UEFA"),
+    ("Club Tijuana", "Mexico", "CONCACAF"),
+    ("Gaziantepspor", "Turkey", "UEFA"),
+    ("Kayseri Erciyesspor", "Turkey", "UEFA"),
+    ("SK Sturm Graz", "Austria", "UEFA"),
+    ("Eintracht Braunschweig", "Germany", "UEFA"),
+    ("Naft Teheran", "Iran", "AFC"),
+    ("CS Cartaginés", "Costa Rica", "CONCACAF"),
+    ("SC Covilhã", "Portugal", "UEFA"),
+    ("Zorya Lugansk", "Ukraine", "UEFA"),
+    ("FC Zürich", "Switzerland", "UEFA"),
+    ("Aduana Stars FC", "Ghana", "CAF"),
+    ("Atlético Nacional", "Colombia", "CONMEBOL"),
+    ("FC Évian Thonon Gaillard", "France", "UEFA"),
+    ("FC Ashdod", "Israel", "UEFA"),
+    ("Olympiakos Nikosia", "Cyprus", "UEFA"),
+    ("Orlando Pirates", "South Africa", "CAF"),
+    ("FC Sochaux-Montbéliard", "France", "UEFA"),
+    ("Valenciennes FC", "France", "UEFA"),
+    ("Mamelodi Sundowns FC", "South Africa", "CAF"),
+    ("Charlton Athletic", "England", "UEFA"),
+    ("Sporting Kansas City", "United States", "CONCACAF"),
+    ("Foolad FC", "Iran", "AFC"),
+    ("Lekhwiya SC", "Qatar", "AFC"),
+    ("CS Constantine", "Algeria", "CAF"),
+    ("USM Algier", "Algeria", "CAF"),
+    ("Académica Coimbra", "Portugal", "UEFA"),
+    ("Strømsgodset IF", "Norway", "UEFA"),
+    ("Guangzhou Evergrande", "China", "AFC"),
+    ("PAE Veria", "Greece", "UEFA"),
+    ("Busan IPark", "South Korea", "AFC"),
+    ("GFC Ajaccio", "France", "UEFA"),
+    ("Guangzhou R&F", "China", "AFC"),
+    ("Alania Vladikavkaz", "Russia", "UEFA"),
+    ("Bolton Wanderers", "England", "UEFA"),
+    ("Zenit St. Petersburg II", "Russia", "UEFA"),
+    ("GFC Ajaccio", "France", "UEFA"),
+    ("Guangzhou R&F", "China", "AFC"),
+    ("Alania Vladikavkaz", "Russia", "UEFA"),
+    ("Anży Machaczkała ( -2022)", "Russia", "UEFA"),
+    ("AO Platanias", "Greece", "UEFA"),
+    ("Atlético Mineiro", "Brazil", "CONMEBOL"),
+    ("Moroka Swallows", "South Africa", "CAF"),
+    ("CA Colón", "Argentina", "CONMEBOL"),
+    ("Club Estudiantes de La Plata", "Argentina", "CONMEBOL"),
+    ("Maccabi Haifa", "Israel", "UEFA"),
+    ("Kaizer Chiefs", "South Africa", "CAF"),
+    ("Jaguares de Chiapas", "Mexico", "CONCACAF"),
+    ("Hapoel Tel Aviv", "Israel", "UEFA"),
+    ("SuperSport United", "South Africa", "CAF"),
+    ("Steaua Bukarest", "Romania", "UEFA"),
+    ("Ajax Cape Town (- 2020)", "South Africa", "CAF"),
+    ("Hapoel Petah Tikva", "Israel", "UEFA"),
+    ("Lamontville Golden Arrows", "South Africa", "CAF"),
+    ("Oita Trinita", "Japan", "AFC"),
+    ("Maritzburg United FC", "South Africa", "CAF"),
+    ("Krylja Sowietow Samara", "Russia", "UEFA"),
+    ("Seongnam Ilhwa Chunma", "South Korea", "AFC"),
+    ("Pohang Steelers", "South Korea", "AFC"),
+    ("AC Siena", "Italy", "UEFA"),
+    ("ES Sétif", "Algeria", "CAF"),
+    ("ASO Chlef", "Algeria", "CAF"),
+    ("Racing Santander", "Spain", "UEFA"),
+    ("US Avellino", "Italy", "UEFA"),
+    ("Busan I'Park", "South Korea", "AFC"),
+    ("FC Istres Ouest Provence ", "France", "UEFA"),
+    ("Kyoto Sanga", "Japan", "AFC"),
+    ("Sparta Rotterdam", "Netherlands", "UEFA"),
+    ("CD Nacional", "Portugal", "UEFA"),
+    ("Grenoble Foot 38", "France", "UEFA"),
+    ("AC Mantova 1911", "Italy", "UEFA"),
+    ("Bnei Yehuda Tel Aviv", "Israel", "UEFA"),
+    ("FK Moskwa", "Russia", "UEFA"),
+    ("TuS Koblenz", "Germany", "UEFA"),
+    ("IK Start", "Norway", "UEFA"),
+    ("Blackburn Rovers", "England", "UEFA"),
+    ("AE Larisa", "Greece", "UEFA"),
+    ("Aarhus GF", "Denmark", "UEFA"),
+    ("FC Groningen", "Netherlands", "UEFA"),
+    ("AO Kavala", "Greece", "UEFA"),
+    ("AC Arles-Avignon", "France", "UEFA"),
+    ("Fredrikstad FK", "Norway", "UEFA"),
+    ("NAC Breda", "Netherlands", "UEFA"),
+    ("Gold Coast United", "Australia", "AFC"),
+    ("FK Cukaricki", "Serbia", "UEFA"),
+    ("MKE Ankaragücü", "Turkey", "UEFA"),
+    ("NK Maribor", "Slovenia", "UEFA"),
+    ("FK Vojvodina Novi Sad", "Serbia", "UEFA"),
+    ("FK Hajduk Kula", "Serbia", "UEFA"),
+    ("MSV Duisburg", "Germany", "UEFA"),
+    ("KSV Roeselare (- 2020)", "Belgium", "UEFA"),
+    ("Wellington Phoenix", "New Zealand", "OFC"),
+    ("Auckland City FC", "New Zealand", "OFC"),
+    ("Team Wellington (2004-2021)", "New Zealand", "OFC"),
+    ("1.FC Kaiserslautern", "Germany", "UEFA"),
+    ("Canterbury United (2002 - 2021)", "New Zealand", "OFC"),
+    ("Argentinos Juniors", "Argentina", "CONMEBOL"),
+    ("AC Sparta Praga", "Czech Republic", "UEFA"),
+    ("Saturn Ramenskoe", "Russia", "UEFA"),
+    ("FC Timisoara", "Romania", "UEFA"),
+    ("AS Bari", "Italy", "UEFA"),
+    ("Slovan Bratislava", "Slovakia", "UEFA"),
+    ("US Grosseto FC", "Italy", "UEFA"),
+    ("Club Libertad Asunción", "Paraguay", "CONMEBOL"),
+    ("AC Cesena", "Italy", "UEFA"),
+    ("Albirex Niigata", "Japan", "AFC"),
+    ("FC Midtjylland", "Denmark", "UEFA"),
+    ("SC Bastia B", "France", "UEFA"),
+    ("Plymouth Argyle", "England", "UEFA"),
+    ("Tom Tomsk", "Russia", "UEFA"),
+    ("Reggina Calcio", "Italy", "UEFA"),
+    ("Independiente Medellín", "Colombia", "CONMEBOL"),
+    ("Iraklis Saloniki", "Greece", "UEFA"),
+    ("Kansas City Wizards", "United States", "CONCACAF"),
+    ("Hangzhou Greentown", "China", "AFC"),
+    ("Skoda Xanthi", "Greece", "UEFA"),
+    ("FC Vaslui", "Romania", "UEFA"),
+    ("Club Necaxa", "Mexico", "CONCACAF"),
+    ("FC International Curtea de Arges", "Romania", "UEFA"),
+    ("CD Marathón", "Honduras", "CONCACAF"),
+    ("Spartak Trnava", "Slovakia", "UEFA"),
+    ("JEF United Chiba", "Japan", "AFC"),
+    ("Slavia Sofia", "Bulgaria", "UEFA"),
+    ("Xerez CD", "Spain", "UEFA"),
+    ("Maccabi Netanya", "Israel", "UEFA"),
+    ("Recreativo Huelva", "Spain", "UEFA"),
+    ("Cracovia", "Poland", "UEFA"),
+    ("Metalist Kharkiv", "Ukraine", "UEFA"),
+    ("Elche CF", "Spain", "UEFA"),
+    ("IFK Göteborg", "Sweden", "UEFA"),
+    ("IF Elfsborg", "Sweden", "UEFA"),
+    ("Dundee FC", "Scotland", "UEFA"),
+    ("Falkirk FC", "Scotland", "UEFA"),
+    ("FC Gillingham", "England", "UEFA"),
+    ("Wrexham AFC", "Wales", "UEFA"),
+    ("Coventry City", "England", "UEFA"),
+    ("Crewe Alexandra", "England", "UEFA"),
+    ("Port Vale FC", "England", "UEFA"),
+    ("FC Hansa Rostock", "Germany", "UEFA"),
+    ("CA Independiente II", "Argentina", "CONMEBOL"),
+    ("New England Revolution", "United States", "CONCACAF"),
+    ("SV Waldhof Mannheim", "Germany", "UEFA"),
+    ("Roda JC Kerkrade", "Netherlands", "UEFA"),
+    ("FC Sochaux-Montbéliard B", "France", "UEFA"),
+    ("KSK Beveren (- 2010)", "Belgium", "UEFA"),
+    ("Wisła Płock", "Poland", "UEFA"),
+    ("Zeleznik Belgrad", "Serbia", "UEFA"),
+    ("Viborg FF", "Denmark", "UEFA"),
+    ("FC Messina Peloro", "Italy", "UEFA"),
+    ("Terek Grozny", "Russia", "UEFA"),
+    ("PAS Tehran", "Iran", "AFC"),
+    ("Piroozi FC", "Iran", "AFC"),
+    ("Saba Battery Qom", "Iran", "AFC"),
+    ("Portimonense SC", "Portugal", "UEFA"),
+    ("Hapoel Kfar Saba", "Israel", "UEFA"),
+    ("Modena FC", "Italy", "UEFA"),
+    ("Internacional Porto Alegre", "Brazil", "CONMEBOL"),
+    ("King Faisal FC", "Ghana", "CAF"),
+    ("Neuchâtel Xamax", "Switzerland", "UEFA"),
+    ("Colorado Rapids", "United States", "CONCACAF"),
+    ("D.C. United", "United States", "CONCACAF"),
+    ("FC Energie Cottbus", "Germany", "UEFA"),
+    ("Tecos de la UAG", "Mexico", "CONCACAF"),
+    ("SG Dynamo Dresden", "Germany", "UEFA"),
+    ("FC Barreirense", "Portugal", "UEFA"),
+    ("Chunnam Dragons", "South Korea", "AFC"),
+    ("AS Livorno", "Italy", "UEFA"),
+    ("RAEC Mons (-2015)", "Belgium", "UEFA"),
+    ("VfB Admira Wacker Mödling", "Austria", "UEFA"),
+    ("Servette FC", "Switzerland", "UEFA"),
+    ("SC YF Juventus Zürich", "Switzerland", "UEFA"),
+    ("Bayer 04 Leverkusen U19", "Germany", "UEFA"),
+    ("Derby County", "England", "UEFA"),
+    ("Tromsø IL", "Norway", "UEFA"),
+    ("Lierse SK (-2018)", "Belgium", "UEFA"),
+    ("Gwangju Sangmu", "South Korea", "AFC"),
+    ("Dnipro Dniepropetrowsk  (-2020)", "Ukraine", "UEFA"),
+    ("Samsunspor", "Turkey", "UEFA"),
+    ("Czornomoreć Odessa", "Ukraine", "UEFA"),
+    ("Arsenał Kijów ( -2019)", "Ukraine", "UEFA"),
+    ("Rot-Weiß Oberhausen", "Germany", "UEFA"),
+    ("Vorskla Poltava", "Ukraine", "UEFA"),
+    ("Dynamo-2 Kijów", "Ukraine", "UEFA"),
+    ("Clermont Foot Auvergne", "France", "UEFA"),
+    ("FC Aboomoslem", "Iran", "AFC"),
+    ("MTK Budapest", "Hungary", "UEFA"),
+    ("Újpest FC", "Hungary", "UEFA"),
+    ("Kecskeméti TE", "Hungary", "UEFA"),
+    ("Paksi FC", "Hungary", "UEFA"),
+    ("US Lecce", "Italy", "UEFA"),
+    ("Fehérvár FC", "Hungary", "UEFA"),
+    ("Parma Calcio 1913", "Italy", "UEFA"),
+    ("Le Havre AC", "France", "UEFA"),
+    ("FC Empoli", "Italy", "UEFA"),
+    ("Sivasspor", "Turkey", "UEFA"),
+    ("FC Famalicão", "Portugal", "UEFA"),
+    ("FC Baniyas", "United Arab Emirates", "AFC"),
+    ("SV Darmstadt 98", "Germany", "UEFA"),
+    ("Gwangju FC", "South Korea", "AFC"),
+    ("NK Celje", "Slovenia", "UEFA"),
+    ("Ulsan HD FC", "South Korea", "AFC"),
+    ("FC Voluntari", "Romania", "UEFA"),
+    ("Crawley Town", "England", "UEFA"),
+    ("APOEL Nikosia", "Cyprus", "UEFA"),
+    ("AS Cittadella", "Italy", "UEFA"),
+    ("FK Bodø/Glimt", "Norway", "UEFA"),
+    ("FK Sochi", "Russia", "UEFA"),
+    ("CFR Cluj", "Romania", "UEFA"),
+    ("FC Südtirol", "Italy", "UEFA"),
+    ("Pisa Sporting Club", "Italy", "UEFA"),
+    ("NK Olimpija Ljubljana", "Slovenia", "UEFA"),
+    ("FK TSC Backa Topola", "Serbia", "UEFA"),
+    ("Jagiellonia Białystok", "Poland", "UEFA"),
+    ("Union Saint-Gilloise", "Belgium", "UEFA"),
+    ("Puskás Akadémia FC", "Hungary", "UEFA"),
+    ("TSV Hartberg", "Austria", "UEFA"),
+    ("FC Banik Ostrava", "Czech Republic", "UEFA"),
+    ("FC Slovan Liberec", "Czech Republic", "UEFA"),
+    ("Hatta Club", "United Arab Emirates", "AFC"),
+    ("Ascoli Calcio", "Italy", "UEFA"),
+    ("Gaziantep FK", "Turkey", "UEFA"),
+    ("Universitatea Craiova", "Romania", "UEFA"),
+    ("Damac FC", "Saudi Arabia", "AFC"),
+    ("KVC Westerlo", "Belgium", "UEFA"),
+    ("Al-Okhdood Club", "Saudi Arabia", "AFC"),
+    ("Palermo FC", "Italy", "UEFA"),
+    ("Raków Częstochowa", "Poland", "UEFA"),
+    ("Muaither SC", "Qatar", "AFC"),
+    ("LASK", "Austria", "UEFA"),
+    ("Polissya Zhytomyr", "Ukraine", "UEFA"),
+    ("SK Slavia Praga", "Czech Republic", "UEFA"),
+    ("Dinamo Tbilisi", "Georgia", "UEFA"),
+    ("SK Dnipro-1", "Ukraine", "UEFA"),
+    ("Karlsruher SC", "Germany", "UEFA"),
+    ("Wolfsberger AC", "Austria", "UEFA"),
+    ("Qarabağ FK", "Azerbaijan", "UEFA"),
+    ("Dinamo Batumi", "Georgia", "UEFA"),
+    ("FC Viktoria Pilzno", "Czech Republic", "UEFA"),
+    ("FCSB", "Romania", "UEFA"),
+    ("Manchester United U23", "England", "UEFA"),
+    ("Kilmarnock FC", "Scotland", "UEFA"),
+    ("HJK Helsinki", "Finland", "UEFA"),
+    ("PEC Zwolle", "Netherlands", "UEFA"),
+    ("BK Häcken", "Sweden", "UEFA"),
+    ("Montreal Impact", "Canada", "CONCACAF"),
+    ("SK Brann", "Norway", "UEFA"),
+    ("Esbjerg fB", "Denmark", "UEFA"),
+    ("Shanghai SIPG", "China", "AFC"),
+    ("Lokomotiv-Kazanka Moskau", "Russia", "UEFA"),
+    ("FC Honka", "Finland", "UEFA"),
+    ("Bristol Rovers", "England", "UEFA"),
+    ("Ajax Amsterdam U21", "Netherlands", "UEFA"),
+    ("FK Ufa", "Russia", "UEFA"),
+    ("Rabotnicki Skopje", "North Macedonia", "UEFA"),
+    ("AEK Larnaka", "Cyprus", "UEFA"),
+    ("MOL Vidi FC", "Hungary", "UEFA"),
+    ("Nîmes Olympique", "France", "UEFA"),
+    ("Shkendija Tetovo", "North Macedonia", "UEFA"),
+    ("Vardar Skopje", "North Macedonia", "UEFA"),
+    ("FC Nitra", "Slovakia", "UEFA"),
+    ("MFK Ruzomberok", "Slovakia", "UEFA"),
+    ("KV Kortrijk", "Belgium", "UEFA"),
+    ("Sönderjyske", "Denmark", "UEFA"),
+    ("Helsingborgs IF", "Sweden", "UEFA"),
+    ("FK Sarajevo", "Bosnia and Herzegovina", "UEFA"),
+    ("SK Sigma Ołomuniec", "Czech Republic", "UEFA"),
+    ("SK Sigma Olomouc U19", "Czech Republic", "UEFA"),
+    ("Śląsk Wrocław", "Poland", "UEFA"),
+    ("Motherwell FC", "Scotland", "UEFA"),
+    ("Dunfermline Athletic FC", "Scotland", "UEFA"),
+    ("Dalian Professional", "China", "AFC"),
+    ("Genclerbirligi Ankara", "Turkey", "UEFA"),
+    ("Anorthosis Famagusta", "Cyprus", "UEFA"),
+    ("Livingston FC", "Scotland", "UEFA"),
+    ("Apollon Limassol", "Cyprus", "UEFA"),
+    ("Mezőkövesd Zsóry FC", "Hungary", "UEFA"),
+    ("Zalaegerszegi TE FC", "Hungary", "UEFA"),
+    ("Budapest Honvéd FC", "Hungary", "UEFA"),
+    ("Debreceni VSC", "Hungary", "UEFA"),
+    ("SK Dynamo Czeskie Budziejowice", "Czech Republic", "UEFA"),
+    ("PAS Giannina", "Greece", "UEFA"),
+    ("Osmanlispor FK", "Turkey", "UEFA"),
+    ("Frosinone Calcio", "Italy", "UEFA"),
+    ("Delfino Pescara 1936", "Italy", "UEFA"),
+    ("KF Skënderbeu", "Albania", "UEFA"),
+    ("Pandurii Targu Jiu (- 2022)", "Romania", "UEFA"),
+    ("Córdoba CF", "Spain", "UEFA"),
+    ("Astra Giurgiu", "Romania", "UEFA"),
+    ("Inverness Caledonian Thistle FC", "Scotland", "UEFA"),
+    ("FK Jablonec", "Czech Republic", "UEFA"),
+    ("Kairat Almaty", "Kazakhstan", "UEFA"),
+    ("FC Vaduz", "Liechtenstein", "UEFA"),
+    ("FK Partizani", "Albania", "UEFA"),
+    ("Willem II Tilburg", "Netherlands", "UEFA"),
+    ("MSK Zilina", "Slovakia", "UEFA"),
+    ("Ruch Chorzów", "Poland", "UEFA"),
+    ("Zagłębie Lubin", "Poland", "UEFA"),
+    ("Fleetwood Town", "England", "UEFA"),
+    ("Hamilton Academical FC", "Scotland", "UEFA"),
+    ("Doncaster Rovers", "England", "UEFA"),
+    ("Calcio Como", "Italy", "UEFA"),
+    ("Notts County", "England", "UEFA"),
+    ("Sheffield Wednesday", "England", "UEFA"),
+    ("Sandefjord Fotball", "Norway", "UEFA"),
+    ("IFK Norrköping", "Sweden", "UEFA"),
+    ("Molde FK", "Norway", "UEFA"),
+    ("GIF Sundsvall", "Sweden", "UEFA"),
+    ("FC Ingolstadt 04", "Germany", "UEFA"),
+    ("Diósgyőri VTK", "Hungary", "UEFA"),
+    ("Videoton FC", "Hungary", "UEFA"),
+    ("Szombathelyi Haladás", "Hungary", "UEFA"),
+    ("Al-Sailiya SC", "Qatar", "AFC"),
+    ("FK Baumit Jablonec", "Czech Republic", "UEFA"),
+    ("Worskła Połtawa", "Ukraine", "UEFA"),
+    ("Illicziweć Mariupol", "Ukraine", "UEFA"),
+    ("Cheltenham Town", "England", "UEFA"),
+    ("SK Tawrija Symferopol (-2022)", "Ukraine", "UEFA"),
+    ("Hamarkameratene", "Norway", "UEFA"),
+    ("GKS Bełchatów", "Poland", "UEFA"),
+    ("SV Mattersburg", "Austria", "UEFA"),
+    ("Ankaraspor", "Turkey", "UEFA"),
+    ("Korona Kielce", "Poland", "UEFA"),
+    ("OFI Kreta", "Greece", "UEFA"),
+    ("Rapid Bukarest", "Romania", "UEFA"),
+    ("CSKA Sofia", "Bulgaria", "UEFA"),
+    ("Politehnica Timișoara", "Romania", "UEFA")
 ]
 
 
@@ -979,7 +1553,7 @@ async def get_ranking(session, federation, country, year, confederation_multipli
 
     if federation not in urls:
         print(f"Nieznana federacja: {federation}")
-        return None
+        return 0
 
     url = urls[federation]
     ranking = 0
@@ -1031,7 +1605,7 @@ async def get_ranking(session, federation, country, year, confederation_multipli
 
     final_ranking = ranking * confederation_multiplier
 
-    return final_ranking if final_ranking > 0 else None
+    return final_ranking
 
 
 async def update_market_value_history_with_rankings(conn, football_teams_info, year):
@@ -1062,8 +1636,10 @@ async def update_market_value_history_with_rankings(conn, football_teams_info, y
         "OFC": 1
     }
 
+    # Cache dla rankingów
+    ranking_cache = {}
+
     async with aiohttp.ClientSession() as session:
-        tasks = []
         for (club,) in clubs:
             # Znajdź kraj i federację dla klubu
             team_info = next((info for info in football_teams_info if info[0] == club), None)
@@ -1072,17 +1648,14 @@ async def update_market_value_history_with_rankings(conn, football_teams_info, y
                 country = team_info[1]
                 federation = team_info[2]
 
-                confederation_multiplier = confederation_multipliers.get(federation, 1)
-
-                tasks.append(get_ranking(session, federation, country, year, confederation_multiplier))
-
-        rankings = await asyncio.gather(*tasks)
-
-        for (club,), ranking in zip(clubs, rankings):
-            team_info = next((info for info in football_teams_info if info[0] == club), None)
-            if team_info:
-                country = team_info[1]
-                federation = team_info[2]
+                if (federation, country) not in ranking_cache:
+                    # Jeśli ranking dla tej federacji i kraju nie jest w cache, oblicz go
+                    confederation_multiplier = confederation_multipliers.get(federation, 1)
+                    ranking = await get_ranking(session, federation, country, year, confederation_multiplier)
+                    ranking_cache[(federation, country)] = ranking
+                else:
+                    # Pobierz ranking z cache
+                    ranking = ranking_cache[(federation, country)]
 
                 # Aktualizacja tabeli market_value_history
                 cursor.execute('''
@@ -1132,18 +1705,22 @@ async def fetch_player_stats(session, player_id, year):
 
                 # Pobieranie pozycji zawodnika
                 position_element = soup.select_one(
-                    "#tm-main > header > div.data-header__info-box > div > ul:nth-child(2) > li:nth-child(2) > span")
+                    "#tm-main > header > div.data-header__info-box > div > ul:nth-child(2) > li:nth-child(2) > span"
+                )
                 position = position_element.text.strip() if position_element else "Unknown"
 
                 # Sprawdzenie, czy zawodnik jest bramkarzem
                 is_goalkeeper = "Goalkeeper" in position
 
+                # Próbujemy pobrać dane ze statystyk z różnych możliwych ścieżek
                 tfoot = soup.find('tfoot')
-                if tfoot:
+                if not tfoot:
+                    # Próba innej metody wyszukania tabeli, jeśli tfoot nie istnieje
+                    stats_table = soup.select("div.responsive-table > table > tbody > tr > td")
+                else:
                     stats_table = tfoot.find_all('td')
-                    print(f"Debug: stats_table for player {player_id} - {stats_table}")
-                    print(f"Debug: stats_table length for player {player_id} - {len(stats_table)}")
 
+                if stats_table and len(stats_table) > 0:
                     if is_goalkeeper:
                         # Statystyki dla bramkarzy
                         appearances = stats_table[3].text.strip() or '0'
@@ -1155,31 +1732,30 @@ async def fetch_player_stats(session, player_id, year):
                         minutes_played = stats_table[8].text.strip().replace(".", "").replace("'", "") or '0'
 
                         stats = {
-                            "appearances": appearances,
-                            "clean_sheets": clean_sheets,  # Czyste konta
-                            "conceded_goals": conceded_goals,  # Stracone bramki
-                            "yellow_cards": yellow_cards,
-                            "red_cards": red_cards,
-                            "minutes_played": minutes_played,
+                            "appearances": appearances if appearances != "-" else '0',
+                            "clean_sheets": clean_sheets if clean_sheets != "-" else '0',
+                            "conceded_goals": conceded_goals if conceded_goals != "-" else '0',
+                            "yellow_cards": yellow_cards if yellow_cards != "-" else '0',
+                            "red_cards": red_cards if red_cards != "-" else '0',
+                            "minutes_played": minutes_played if minutes_played != "-" else '0',
                             "position": position
                         }
                     else:
                         # Statystyki dla zawodników z pola
                         minutes_played = stats_table[7].text.strip().replace(".", "").replace("'", "") or '0'
                         stats = {
-                            "appearances": stats_table[3].text.strip() or '0',
-                            "goals": stats_table[4].text.strip() or '0',
-                            "assists": stats_table[5].text.strip() or '0',
-                            "yellow_cards": stats_table[6].text.strip().split("/")[0].strip() or '0',
-                            "red_cards": stats_table[6].text.strip().split("/")[1].strip() or '0',
-                            "minutes_played": minutes_played,
+                            "appearances": stats_table[3].text.strip() if stats_table[3].text.strip() != "-" else '0',
+                            "goals": stats_table[4].text.strip() if stats_table[4].text.strip() != "-" else '0',
+                            "assists": stats_table[5].text.strip() if stats_table[5].text.strip() != "-" else '0',
+                            "yellow_cards": stats_table[6].text.strip().split("/")[0].strip() if stats_table[6].text.strip().split("/")[0].strip() != "-" else '0',
+                            "red_cards": stats_table[6].text.strip().split("/")[1].strip() if stats_table[6].text.strip().split("/")[1].strip() != "-" else '0',
+                            "minutes_played": minutes_played if minutes_played != "-" else '0',
                             "position": position
                         }
 
-                    print(f"Debug: Parsed stats for player {player_id} - {stats}")
                     return stats
                 else:
-                    print(f"No stats found in tfoot for player ID {player_id}.")
+                    print(f"No stats found in tfoot or alternative path for player ID {player_id}.")
                     return None
             else:
                 print(f"Failed to retrieve data for player ID {player_id}. Status code: {response.status}")
@@ -1237,22 +1813,55 @@ async def save_player_stats_async(player_ids, year, conn):
 def save_player_stats(player_ids, year, conn):
     asyncio.run(save_player_stats_async(player_ids, year, conn))
 
+def remove_players_without_stats(conn):
+    cursor = conn.cursor()
+
+    # Zbieranie transfermarkt_id graczy, którzy mają pustą wartość w kolumnie 'position' w market_value_history
+    cursor.execute("""
+    SELECT DISTINCT player_id 
+    FROM market_value_history 
+    WHERE position IS NULL
+    """)
+    players_to_remove = cursor.fetchall()
+
+    if not players_to_remove:
+        print("Nie znaleziono graczy do usunięcia.")
+        return
+
+    players_to_remove = [row[0] for row in players_to_remove]
+
+    print("IDs to be removed due to missing position:", players_to_remove)
+
+    # Usunięcie graczy z tabeli teams
+    cursor.executemany("DELETE FROM teams WHERE transfermarkt_id = ?", [(player_id,) for player_id in players_to_remove])
+    print(f"Usunięto {cursor.rowcount} graczy z tabeli teams.")
+
+    # Usunięcie graczy z tabeli market_value_history
+    cursor.executemany("DELETE FROM market_value_history WHERE player_id = ?", [(player_id,) for player_id in players_to_remove])
+    print(f"Usunięto {cursor.rowcount} wpisów z tabeli market_value_history.")
+
+    conn.commit()
+
+
 
 # Call this function in your scraping process
-def run_scraping_process(year, tournament):
+def run_scraping_process(year, tournament, event_date):
     try:
         tournament = tournament
-        year = year - 1
-        conn = create_database(tournament, year + 1)
+        year = year
+        event_date = event_date
+        conn = create_database(tournament, year)
         print("Baza danych została utworzona.")
 
-        # Dodanie kolumny hashy klubów (jeśli nie została wcześniej dodana)
-        add_club_hash_column_to_market_value_history(conn)
-        print("Kolumna hashów klubów została dodana (jeśli nie istniała).")
+        if tournament == "world_cup1":
+            # Pobranie danych drużyn
+            scrap_squad(f"https://en.wikipedia.org/wiki/{year}_FIFA_World_Cup_squads", conn)
+            print("Dane drużyn zostały pobrane i zapisane do bazy danych.")
 
-        # Pobranie danych drużyn
-        scrap_squad("https://en.wikipedia.org/wiki/2022_FIFA_World_Cup_squads", conn)
-        print("Dane drużyn zostały pobrane i zapisane do bazy danych.")
+        if tournament == "euro1":
+            # Pobranie danych drużyn
+            scrap_squad(f"https://en.wikipedia.org/wiki/UEFA_Euro_{year}_squads", conn)
+            print("Dane drużyn zostały pobrane i zapisane do bazy danych.")
 
         # Pobieranie listy drużyn i zawodników z bazy danych
         cursor = conn.cursor()
@@ -1271,16 +1880,20 @@ def run_scraping_process(year, tournament):
         player_ids = [pid[0] for pid in player_ids]
 
         # Call the function with the list of player IDs
-        save_market_value_history(player_ids, conn, "20-11-2022")
+        save_market_value_history(player_ids, conn, event_date)
         print("Historia wartości rynkowej została pobrana i zapisana.")
 
         # Dodajemy informacje o federacji, kraju i rankingu do market_value_history
-        asyncio.run(update_market_value_history_with_rankings(conn, football_teams_info, year))
+        asyncio.run(update_market_value_history_with_rankings(conn, football_teams_info, year-1))
         print("Informacje o federacji, kraju i rankingu zostały zaktualizowane.")
 
         # Pobieranie i zapisywanie statystyk zawodników
-        save_player_stats(player_ids, year, conn)
+        save_player_stats(player_ids, year-1, conn)
         print("Statystyki zawodników zostały pobrane i zapisane.")
+
+        # Usunięcie graczy bez statystyk
+        remove_players_without_stats(conn)
+        print("Gracze bez statystyk zostali usunięci.")
 
         # Zamknięcie połączenia z bazą danych
         conn.close()
@@ -1291,5 +1904,13 @@ def run_scraping_process(year, tournament):
 
 
 # Wywołanie funkcji głównej, aby uruchomić cały proces dla konkretnego roku
-# run_scraping_process(2022, "world_cup1")
-run_scraping_process(2018, "world_cup1")
+# run_scraping_process(2022, "world_cup1", "20-11-2022")
+# run_scraping_process(2018, "world_cup1", "14-06-2018")
+# run_scraping_process(2014, "world_cup1", "12-06-2014")
+# run_scraping_process(2010, "world_cup1", "11-06-2010")
+# run_scraping_process(2006, "world_cup1", "09-06-2006")
+# run_scraping_process(2024, "euro1", "14-06-2024")
+# run_scraping_process(2020, "euro1", "11-06-2020")
+# run_scraping_process(2016, "euro1", "10-06-2016")
+# run_scraping_process(2012, "euro1", "08-06-2012")
+# run_scraping_process(2008, "euro1", "07-06-2008")
