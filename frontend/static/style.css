@@ -1,5 +1,17 @@
+@import url('https: //fonts.googleapis.com/css2?family=Moderustic:wght@300..800&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: "Ubuntu", sans-serif;
+    /* background-image: url("background_photo_5.png"); */
+    /* background-color: #f8f9fa;*/
+    font-weight: 500;
+    background-size: cover;
+}
+
+.p-4.rounded {
+    background-image: url("header_background.png");
+    background-size: cover;
+    margin-bottom: 50px;
 }
 
 .navbar-nav {
@@ -10,12 +22,267 @@ body {
     margin: 0 35px;
 }
 
+.row {
+    margin-left: 100px;
+}
+
+#firstSection {
+    text-align: center;
+}
+
+#secondSection {
+    text-align: left;
+    font-size: 24px;
+}
+
+#anniversary {
+    font-size: 16px;
+    color: #333399;
+}
+
+#localization,
+#mail,
+#tel {
+    text-align: right;
+}
+
+#thirdSection p {
+    margin-bottom: 2px;
+    text-align: right;
+    color: white;
+}
+
+#secondSection p {
+    margin-bottom: 2px;
+}
+
+#less100 {
+    font-size: 0;
+}
+
+#less p {
+    font-size: 0px;
+}
+
+@media (max-width: 1808px) {
+    .p-4.rounded {
+        background-image: url("header_background_2.png");
+        background-size: cover;
+    }
+}
+
+@media (max-width: 1682px) {
+    .p-4.rounded {
+        background-image: url("header_background_3.png");
+        background-size: cover;
+    }
+}
+
+@media (max-width: 1583px) {
+    .p-4.rounded {
+        background-image: url("header_background_4.png");
+        background-size: cover;
+    }
+}
+
+@media (max-width: 1459px) {
+    .p-4.rounded {
+        background-image: url("header_background_5.png");
+        background-size: cover;
+    }
+}
+
+@media (max-width: 1404px) {
+    .p-4.rounded {
+        background-image: url("header_background_6.png");
+        background-size: cover;
+    }
+}
+
+@media (max-width: 1450px) {
+
+    #secondSection p {
+        margin-left: 20px;
+    }
+}
+
+@media (max-width: 1295px) {
+    .row {
+        margin-left: 0px;
+    }
+
+    #secondSection p {
+        text-align: left;
+        margin-left: 20px;
+    }
+
+    .p-4.rounded {
+        background-image: url("header_background_7.png");
+        background-size: cover;
+    }
+}
+
+@media (max-width: 1040px) {
+
+    .p-4.rounded {
+        background-image: url("header_background_8.png");
+        background-size: cover;
+    }
+}
+
+@media (max-width: 900px) {
+
+    .p-4.rounded {
+        background-image: url("header_background_9.png");
+        background-size: cover;
+    }
+}
+
+@media (max-width: 855px) {
+
+    .p-4.rounded {
+        background-image: url("header_background_10.png");
+        background-size: cover;
+    }
+}
+
+@media (max-width: 767px) {
+
+    .p-4.rounded {
+        background-image: url("header_background_11.png");
+        background-size: cover;
+    }
+}
+
+@media (max-width: 1095px) {
+    .row {
+        margin-left: 0px;
+    }
+
+    #secondSection p {
+        text-align: left;
+        margin-left: 20px;
+    }
+
+    #name {
+        font-size: 22px;
+    }
+
+    #anniversary {
+        color: #333399;
+        font-size: 16px;
+    }
+
+    #localization,
+    #mail,
+    #tel {
+        text-align: right;
+        font-size: 16px;
+    }
+
+    #profilPhoto {
+        width: 85px;
+        height: auto;
+    }
+}
+
+@media (max-width: 940px) {
+    .row {
+        margin-left: 0px;
+    }
+
+    #secondSection p {
+        text-align: left;
+        margin-left: 35px;
+    }
+
+    #name {
+        font-size: 20px;
+    }
+
+    #anniversary {
+        color: #333399;
+        font-size: 14px;
+    }
+
+    #localization,
+    #mail,
+    #tel {
+        text-align: right;
+        font-size: 14px;
+    }
+
+    #profilPhoto {
+        width: 80px;
+        height: auto;
+    }
+}
+
+@media (max-width: 767px) {
+
+    .row {
+        margin-left: 0px;
+    }
+
+    #name {
+        font-size: 20px;
+    }
+
+    #anniversary {
+        color: #333399;
+        font-size: 14px;
+    }
+
+    #localization,
+    #mail,
+    #tel {
+        text-align: right;
+        font-size: 14px;
+    }
+
+    #profilPhoto {
+        width: 80px;
+        height: auto;
+    }
+
+    #thirdSection p {
+        font-size: 0;
+    }
+
+    #secondSection p {
+        font-size: 0px;
+    }
+
+    #firstSection {
+        text-align: right;
+    }
+
+    #less {
+        position: absolute;
+        right: 20px;
+        text-align: right;
+    }
+
+    #less p {
+        font-size: 14px;
+        margin-bottom: 2px;
+        text-align: right;
+    }
+
+    #less100 {
+        font-size: 15px;
+        margin-left: 30px;
+        color: #333399;
+        font-style: italic;
+    }
+}
+
+
+
 .container {
-    margin-top: 7.5em;
     background: #ffffff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 80px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     text-align: center;
     width: 100%;
     max-width: 500px;
@@ -24,10 +291,10 @@ body {
     margin-right: auto;
 }
 
-h1 {
+#h1_predictor {
     margin-bottom: 20px;
     font-size: 24px;
-    color: #007bff;
+    color: #333399;
 }
 
 #predictionForm {
@@ -54,7 +321,7 @@ input {
 
 button {
     padding: 10px;
-    background-color: #007bff;
+    background-color: #333399;
     color: white;
     border: none;
     border-radius: 4px;
@@ -64,7 +331,7 @@ button {
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #333399;
 }
 
 .result {
@@ -90,6 +357,7 @@ button:hover {
     font-size: 20px;
     margin-bottom: 10px;
     text-align: center;
+    color: #333399;
 }
 
 .group-table {
@@ -131,7 +399,7 @@ button:hover {
 }
 
 .about-container h1, .about-container h2 {
-    color: #007bff;
+    color: #333399;
 }
 
 .about-container p {
@@ -185,7 +453,7 @@ button:hover {
 .match h2 {
     font-size: 18px;
     margin-bottom: 10px;
-    color: #2286ea;
+    color: #333399;
 }
 
 .match p {
@@ -208,7 +476,7 @@ button:hover {
 .match h3 {
     font-size: 16px;
     margin-top: 10px;
-    color: #2c69dc;
+    color: #333399;
 }
 
 /* Flag icon styles */
@@ -226,34 +494,39 @@ button:hover {
     font-weight: bold;
     padding: 10px;
     margin: 10px 0;
-    border: 2px solid #007bff;
+    border: 2px solid #333399;
     border-radius: 8px;
     display: inline-block;
     background-color: #eef7ff;
-    color: #007bff;
+    color: #333399;
 }
 
 .team-select-header {
     font-size: 20px;
-    color: #007bff;
+    color: #333399;
     margin-bottom: 10px;
 }
 
 .team-select {
     padding: 10px;
     font-size: 16px;
-    border: 1px solid #007bff;
+    border: 1px solid #333399;
     border-radius: 4px;
     background-color: #ffffff;
-    color: #007bff;
+    color: #333399;
     outline: none;
     transition: background-color 0.3s, border-color 0.3s;
+    width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 .team-select:hover,
 .team-select:focus {
     background-color: #ffffff;
-    border-color: #0056b3;
+    border-color: #333399;
 }
 
 .bracket {

@@ -39,7 +39,7 @@
     <body{% block body_attribs %}{% endblock body_attribs %}>
 
         {% block navbar %}
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid">
                 <a class="navbar-brand" href="#">EURO Football App</a>
                 <div class="row"></div>
@@ -50,21 +50,25 @@
                 <div class="collapse navbar-collapse" id="navbarColor02">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" aria-current="page" href="{{ url_for('index') }}">Predictor</a>
+                            <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" aria-current="page" href="{{ url_for('index') }}"
+                            style="{% if request.endpoint == 'index' %}color: #333399;{% else %}color: black;{% endif %}">Predictor</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'groups' %}active{% endif %}" href="{{url_for('groups')}}">Groups</a>
+                            <a class="nav-link {% if request.endpoint == 'groups' %}active{% endif %}" href="{{url_for('groups')}}"
+                            style="{% if request.endpoint == 'groups' %}color: #333399;{% else %}color: black;{% endif %}">Groups</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'matches' %}active{% endif %}" href="{{ url_for('matches') }}">Matches</a>
+                            <a class="nav-link {% if request.endpoint == 'matches' %}active{% endif %}" href="{{ url_for('matches') }}"
+                            style="{% if request.endpoint == 'matches' %}color: #333399;{% else %}color: black;{% endif %}">Matches</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'bracket' %}active{% endif %}" href="{{ url_for('bracket') }}">Tournament bracket</a>
+                            <a class="nav-link {% if request.endpoint == 'bracket' %}active{% endif %}" href="{{ url_for('bracket') }}"
+                            style="{% if request.endpoint == 'bracket' %}color: #333399;{% else %}color: black;{% endif %}">Tournament bracket</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}">About</a>
+                            <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}"
+                            style="{% if request.endpoint == 'bracket' %}color: #333399;{% else %}color: black;{% endif %}">About</a>
                         </li>
-                        
                     </ul>
                     <!-- <form class="d-flex">
                             <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
@@ -96,7 +100,33 @@
            <!-- </div>
         </div> -->
 
+        <div class="p-4 rounded">
+            <div class="row">
 
+                <div id="firstSection" class="col-md-1 d-flex align-items-center">
+                    <img id="profilPhoto" src="../static/badge_shrink.png" alt="badge_shrink">
+                    <span id="less100">UEFA EURO 2024</span>
+                    <span id="less">
+                        <p>↪︎ Germany, Europa 2024</p>
+                        <p>Final:  Olimpia Stadion  14.07</p>
+                        <p>RESPECT AND EQUALITY</p>
+                    </span>
+                </div>
+
+
+                <div id="secondSection" class="col-md-6";>
+                    <p id="name"> Unity in the team, group in unity</p>
+                    <p id="anniversary">EMOTIONS, RIVALRY, HONESTY</p>
+                </div>
+
+                <div id="thirdSection" class="col-md-5";>
+                    <p id="localization">↪︎ Germany, Europa 2024</p>
+                    <p id="mail">Final:  Olimpia Stadion  14.07</p>
+                    <p id="tel">RESPECT AND EQUALITY</p>
+                </div>
+
+            </div>
+        </div>
 
           {% block content -%}
           {%- endblock content %}
