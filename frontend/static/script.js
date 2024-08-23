@@ -50,15 +50,37 @@ document.addEventListener('DOMContentLoaded', function() {
         const team1 = document.getElementById('team1').value;
         const team2 = document.getElementById('team2').value;
 
-        const url = `http://backend/predict?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}`;
+        console.log(team1);
+        console.log(team2);
 
-        fetch(url)
+        const bajlando = 2;
+
+        const url1 = `http://backend/predict?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}`;
+        const url2 = `http://127.0.0.1:5000/euro_details?team1=${team1}&team2=${team2}`;
+
+
+        fetch(url1)
             .then(response => response.json())
             .then(data => {
-                document.getElementById('result').textContent = `Przewidywany wynik: ${data.prediction}`;
+                document.getElementById('result').textContent = `Predicted result: ${data.prediction}`;
             })
             .catch(error => {
-                document.getElementById('result').textContent = 'Wystąpił błąd. Spróbuj ponownie później.';
+                document.getElementById('result').textContent = 'Error. Try again later.';
+                console.error('Error:', error);
+            });
+
+        fetch(url2)
+            .then(response => response.json())
+            .then(data => {
+                let output = `Actual result of ${data.team1} vs ${data.team2} is ${data.score_ft[0]}:${data.score_ft[1]}`;
+                if (output === "Actual result of undefined vs undefined is undefined:undefined") {
+                    document.getElementById('true_result').textContent = "The match did not take place at EURO2024";
+                } else {
+                    document.getElementById('true_result').textContent = output;
+                }
+            })
+            .catch(error => {
+                document.getElementById('true_result').textContent = 'The match did not take place at EURO2024';
                 console.error('Error:', error);
             });
     });
