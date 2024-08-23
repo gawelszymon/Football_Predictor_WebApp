@@ -14,24 +14,23 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     const teamFlags = {
-        'Polska': {name: 'Poland', flag: 'Poland.png'},
-        'Niemcy': {name: 'Germany', flag: 'Germany.png'},
-        'Hiszpania': {name: 'Spain', flag: 'Spain.png'},
-        'Francja': {name: 'France', flag: 'France.png'},
-        'Włochy': {name: 'Italy', flag: 'Italy.png'},
-        'Szwajcaria': {name: 'Switzerland', flag: 'Switzerland.png'},
-        'Słowacja': {name: 'Slovakia', flag: 'Slovakia.png'},
-        'Anglia': {name: 'England', flag: 'England.png'},
-        'Turcja': {name: 'Turkey', flag: 'Turkey.png'},
-        'Austria': {name: 'Austria', flag: 'Austria.png'},
-        'Holandia': {name: 'Netherlands', flag: 'Netherlands.png'},
-        'Rumunia': {name: 'Romania', flag: 'Romania.png'},
-        'Belgia': {name: 'Belgium', flag: 'Belgium.png'},
-        'Słowenia': {name: 'Slovenia', flag: 'Slovenia.png'},
-        'Portugalia': {name: 'Portugal', flag: 'Portugal.png'},
-        'Dania': {name: 'Denmark', flag: 'Denmark.png'},
-        'Gruzja': {name: 'Georgia', flag: 'Georgia.png'},
-        // Add any other mappings if needed...
+        'Polska': {name: 'Poland', flag: 'poland.png'},
+        'Niemcy': {name: 'Germany', flag: 'germany.png'},
+        'Hiszpania': {name: 'Spain', flag: 'spain.png'},
+        'Francja': {name: 'France', flag: 'france.png'},
+        'Włochy': {name: 'Italy', flag: 'italy.png'},
+        'Szwajcaria': {name: 'Switzerland', flag: 'switzerland.png'},
+        'Słowacja': {name: 'Slovakia', flag: 'slovakia.png'},
+        'Anglia': {name: 'England', flag: 'england.png'},
+        'Turcja': {name: 'Turkey', flag: 'turkey.png'},
+        'Austria': {name: 'Austria', flag: 'austria.png'},
+        'Holandia': {name: 'Netherlands', flag: 'netherlands.png'},
+        'Rumunia': {name: 'Romania', flag: 'romania.png'},
+        'Belgia': {name: 'Belgium', flag: 'belgium.png'},
+        'Słowenia': {name: 'Slovenia', flag: 'slovenia.png'},
+        'Portugalia': {name: 'Portugal', flag: 'portugal.png'},
+        'Dania': {name: 'Denmark', flag: 'denmark.png'},
+        'Gruzja': {name: 'Georgia', flag: 'georgia.png'},
     };
 
     function cleanName(name) {

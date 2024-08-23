@@ -1,4 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
+
+    $().ready(function () {
+        var image = document.getElementById("video");
+        image.addEventListener("click", function () {
+            window.open("https://www.youtube.com/watch?v=R67eLGy2nGw", '_blank');
+        });
+
+        var image = document.getElementById("uefa");
+        image.addEventListener("click", function () {
+            window.open("https://www.uefa.com/", '_blank');
+        });
+    })
+
     const team1Select = document.getElementById('team1');
     const team2Select = document.getElementById('team2');
     let teamsData = [];

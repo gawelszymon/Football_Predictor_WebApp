@@ -43,39 +43,43 @@
             <div class="container-fluid">
                 <a class="navbar-brand" href="#">EURO Football App</a>
                 <div class="row"></div>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor02"
-                    aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarColor02">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" aria-current="page" href="{{ url_for('index') }}"
-                            style="{% if request.endpoint == 'index' %}color: #333399;{% else %}color: black;{% endif %}">Predictor</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'groups' %}active{% endif %}" href="{{url_for('groups')}}"
-                            style="{% if request.endpoint == 'groups' %}color: #333399;{% else %}color: black;{% endif %}">Groups</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'matches' %}active{% endif %}" href="{{ url_for('matches') }}"
-                            style="{% if request.endpoint == 'matches' %}color: #333399;{% else %}color: black;{% endif %}">Matches</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'bracket' %}active{% endif %}" href="{{ url_for('bracket') }}"
-                            style="{% if request.endpoint == 'bracket' %}color: #333399;{% else %}color: black;{% endif %}">Tournament bracket</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}"
-                            style="{% if request.endpoint == 'bracket' %}color: #333399;{% else %}color: black;{% endif %}">About</a>
-                        </li>
-                    </ul>
-                    <!-- <form class="d-flex">
-                            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-                            <button class="btn btn-outline-light" type="submit">Search</button>
-                        </form> -->
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor02"
+                        aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarColor02">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" aria-current="page" href="{{ url_for('index') }}"
+                                style="{% if request.endpoint == 'index' %}color: #333399;{% else %}color: black;{% endif %}">Predictor</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'groups' %}active{% endif %}" href="{{url_for('groups')}}"
+                                style="{% if request.endpoint == 'groups' %}color: #333399;{% else %}color: black;{% endif %}">Groups</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'matches' %}active{% endif %}" href="{{ url_for('matches') }}"
+                                style="{% if request.endpoint == 'matches' %}color: #333399;{% else %}color: black;{% endif %}">Matches</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'bracket' %}active{% endif %}" href="{{ url_for('bracket') }}"
+                                style="{% if request.endpoint == 'bracket' %}color: #333399;{% else %}color: black;{% endif %}">Tournament bracket</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}"
+                                style="{% if request.endpoint == 'about' %}color: #333399;{% else %}color: black;{% endif %}">About</a>
+                            </li>
+                        </ul>
+                        <!-- <form class="d-flex">
+                                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                                <button class="btn btn-outline-light" type="submit">Search</button>
+                            </form> -->
+                    </div>
                 </div>
             </div>
+            <div class="col-md-1">
+                <img class="vi_img_class" id="video" src="../static/vi_img.png" alt="img">
+                <img class="ue_img_class" id="uefa" src="../static/ue_img.png" alt="img">
             </div>
         </nav>
         {%- endblock navbar %}

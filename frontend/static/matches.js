@@ -13,9 +13,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     const matchHeader = document.createElement('h2');
                     matchHeader.innerHTML = `
-                        <img src="/static/flags/${match.match.split(' - ')[0]}.png" alt="${match.match.split(' - ')[0]} flag" class="flag-icon">
+                        <img src="/static/flags/${match.match.split(' - ')[0].toLowerCase()}.png" alt="${match.match.split(' - ')[0]} flag" class="flag-icon">
                         ${match.match} 
-                        <img src="/static/flags/${match.match.split(' - ')[1]}.png" alt="${match.match.split(' - ')[1]} flag" class="flag-icon">
+                        <img src="/static/flags/${match.match.split(' - ')[1].toLowerCase()}.png" alt="${match.match.split(' - ')[1]} flag" class="flag-icon">
                     `;
                     matchDiv.appendChild(matchHeader);
 
