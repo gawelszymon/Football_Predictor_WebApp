@@ -86,6 +86,15 @@ body {
     font-size: 0px;
 }
 
+#bracket_title {
+    margin-left: 10%;
+}
+
+.round-title {
+    font-size: 20px;
+    color: #333399;
+}
+
 @media (max-width: 1808px) {
     .p-4.rounded {
         background-image: url("header_background_2.png");
@@ -313,6 +322,17 @@ body {
     margin-left: auto;
     margin-right: auto;
     margin-bottom: auto;
+}
+
+.container_about_subpage {
+    background: #ffffff;
+    padding: 80px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    box-sizing: border-box;
+    margin-bottom: auto;
+    margin-left: 15%;
+    margin-right: 15%;
 }
 
 #h1_predictor {
