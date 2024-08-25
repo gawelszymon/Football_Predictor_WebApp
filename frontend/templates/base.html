@@ -17,7 +17,8 @@
             integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
         {% block styles %}
-        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='../static/style.css') }}">
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+        <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='web_badge.ico') }}">
         {% endblock %}
         
 

@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
+    console.log('Width: ' + window.innerWidth + 'px');
+
+
     const teamBrackets = {
         roundOf16: [],
         quarterFinals: [],
