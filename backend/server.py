@@ -3,9 +3,12 @@ from flask_cors import CORS
 from euro_groups import get_teams_info
 from frontend_last_matches import get_team_matches
 import json
+import datetime
 
 app = Flask(__name__, template_folder="../frontend/templates", static_folder='../frontend/static')
 CORS(app)
+
+entries = []    #TODO replace with database
 
 with open('euro_results.json', 'r') as f:
     data = json.load(f)
@@ -69,6 +72,30 @@ def euro_details():
                 }
                 return jsonify(result)
     return jsonify({"error": "Match not found"}), 404
+
+@app.route('/forum')
+def forum():
+    return render_template('forum.html')
+
+@app.route('/add_entry', methods=['POST'])
+def add_entry():
+    username = request.json['username']
+    content = request.json['content']
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    entry = {
+        'username' : username,
+        'content' : content,
+        'timestamp' : timestamp
+    }
+    
+    entries.append(entry)
+    
+    return jsonify(entries)
+
+@app.route('/get_entries', methods=['GET'])
+def get_entries():
+    return jsonify(entries)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5000, debug=True)
