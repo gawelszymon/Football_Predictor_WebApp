@@ -3,12 +3,23 @@ from flask_cors import CORS
 from euro_groups import get_teams_info
 from frontend_last_matches import get_team_matches
 import json
-import datetime
+from datetime import datetime
 
 app = Flask(__name__, template_folder="../frontend/templates", static_folder='../frontend/static')
 CORS(app)
 
-entries = []    #TODO replace with database
+entries = [     #TODO replace with database
+    {
+        'username': 'Mesut Oezil',
+        'content': 'CR7 or Leo Messi',
+        'timestamp': '2024-08-28 23:15:00'
+    },
+    {
+        'username': 'Pepe Guardiola',
+        'content': 'LM10, the only goat',
+        'timestamp': '2024-08-28 23:20:00'
+    }
+]
 
 with open('euro_results.json', 'r') as f:
     data = json.load(f)
@@ -79,19 +90,25 @@ def forum():
 
 @app.route('/add_entry', methods=['POST'])
 def add_entry():
-    username = request.json['username']
-    content = request.json['content']
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
-    entry = {
-        'username' : username,
-        'content' : content,
-        'timestamp' : timestamp
-    }
-    
-    entries.append(entry)
-    
-    return jsonify(entries)
+    try:
+        username = request.json.get('username')
+        content = request.json.get('content')
+
+        if not username or not content:
+            return jsonify({"error": "Missing username or content"}), 400
+
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        entry = {
+            'username': username,
+            'content': content,
+            'timestamp': timestamp
+        }
+
+        entries.append(entry)
+        return jsonify(entries)
+    except Exception as e:  #to print server logs
+        print(f"Error: {e}")
+        return jsonify({"error": "Internal Server Error"}), 500
 
 @app.route('/get_entries', methods=['GET'])
 def get_entries():

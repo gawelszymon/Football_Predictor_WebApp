@@ -98,3 +98,73 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     });
 });
+
+function loadEntries() {
+    fetch('/get_entries')
+        .then(response => response.json())
+        .then(data => {
+            const entriesContainer = document.getElementById('entries');
+            entriesContainer.innerHTML = '';  //not to publish multiple content, remove the published content
+
+            data.forEach(entry => {
+                const entryDiv = document.createElement('div');
+                entryDiv.classList.add('entry');
+
+                const usernameDiv = document.createElement('div');
+                usernameDiv.classList.add('username');
+                usernameDiv.textContent = entry.username;
+
+                const timestampDiv = document.createElement('div');
+                timestampDiv.classList.add('timestamp');
+                timestampDiv.textContent = entry.timestamp;
+
+                const contentDiv = document.createElement('div');
+                contentDiv.textContent = entry.content;
+
+                entryDiv.appendChild(usernameDiv);
+                entryDiv.appendChild(timestampDiv);
+                entryDiv.appendChild(contentDiv);
+
+                entriesContainer.appendChild(entryDiv);
+            });
+        });
+}
+
+function addEntry() {
+    console.log("load test");
+
+    const username = document.getElementById('username').value;
+    const content = document.getElementById('content').value;
+
+    if (!username || !content) {
+        alert("Please fill in both username and content fields!");
+        return;
+    }
+
+    fetch('/add_entry', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, content })
+    })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => { throw new Error(text) });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Data received:", data);
+            loadEntries();
+            document.getElementById('username').value = '';
+            document.getElementById('content').value = '';
+        })
+        .catch(error => {
+            console.error('Error:', error.message);
+        });
+
+    console.log(JSON.stringify({ username, content }));
+}
+
+document.addEventListener('DOMContentLoaded', loadEntries);

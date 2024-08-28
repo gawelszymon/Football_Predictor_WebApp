@@ -95,6 +95,61 @@ body {
     color: #333399;
 }
 
+.forum-container {
+    width: 50%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f4f4f4;
+    border-radius: 10px;
+}
+
+#entries {
+    margin-bottom: 20px;
+}
+
+.entry {
+    background-color: white;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.entry .username {
+    font-weight: bold;
+}
+
+.entry .timestamp {
+    font-size: 0.8em;
+    color: #888;
+}
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+}
+
+#username,
+#content {
+    margin-bottom: 10px;
+    padding: 10px;
+    font-size: 1em;
+}
+
+button {
+    padding: 10px;
+    font-size: 1em;
+    background-color: #333399;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #111166;
+}
+
 @media (max-width: 1808px) {
     .p-4.rounded {
         background-image: url("header_background_2.png");
