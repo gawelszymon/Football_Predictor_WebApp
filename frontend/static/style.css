@@ -117,6 +117,7 @@ body {
 
 .entry .username {
     font-weight: bold;
+    font-size: 1.2em;
 }
 
 .entry .timestamp {
@@ -129,6 +130,10 @@ body {
     flex-direction: column;
 }
 
+#forum-header {
+    font-size: 30px;
+}
+
 #username,
 #content {
     margin-bottom: 10px;
@@ -137,18 +142,20 @@ body {
 }
 
 button {
-    padding: 10px;
     font-size: 1em;
     background-color: #333399;
     color: white;
-    border: none;
     border-radius: 5px;
     cursor: pointer;
 }
 
 button:hover {
-    background-color: #111166;
+    opacity: 0.85;
 }
+
+/* #entries {
+    font-size: 20px;
+} */
 
 @media (max-width: 1808px) {
     .p-4.rounded {

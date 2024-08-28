@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="forum-container">
-    <h1>Share your feelings with other users</h1>
+    <h1 id="forum-header">Share your feelings with other users</h1>
     <div id="entries"></div>
     <div class="form-container">
-        <input type="text" id="username" placeholder="Your Name">
-        <textarea id="content" placeholder="Your Message"></textarea>
-        <button onclick="addEntry()">Add Entry</button>
+        <input type="text" id="username" placeholder="name">
+        <textarea id="content" placeholder="message"></textarea>
+        <button onclick="addEntry()">Send</button>
     </div>
 </div>
 {% endblock %}
