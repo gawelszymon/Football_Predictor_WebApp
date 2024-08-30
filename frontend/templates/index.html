@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
-    <div id="cointainer-body" class="container">
-        <h1>Football Match Predictor. EURO 2024 EDITION</h1>
+    <div id="container-body" class="container">
+        <img src="{{ url_for('static', filename='flags/logo.png') }}" alt="Logo" class="logo">
+        <h1 id="h1_predictor">Football Match Predictor. EURO 2024 EDITION</h1>
         <form id="predictionForm">
             <label for="team1">Team 1:</label>
             <select id="team1" name="team1" required>
@@ -14,9 +15,9 @@
             <button type="submit">Predict results</button>
         </form>
         <div id="result" class="result"></div>
+        <div id="true_result" class="true_result"></div>
 
         <div class="groups" id="groups-container">
-            <!-- Groups will be dynamically populated here -->
         </div>
     </div>
 {% endblock %}

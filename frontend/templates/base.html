@@ -17,7 +17,8 @@
             integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
         {% block styles %}
-        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='../static/style.css') }}">
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+        <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='web_badge.ico') }}">
         {% endblock %}
         
 
@@ -39,35 +40,51 @@
     <body{% block body_attribs %}{% endblock body_attribs %}>
 
         {% block navbar %}
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid">
                 <a class="navbar-brand" href="#">EURO Football App</a>
                 <div class="row"></div>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor02"
-                    aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarColor02">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" aria-current="page" href="{{ url_for('index') }}">Predictor</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'matches' %}active{% endif %}" href="{{url_for('matches')}}">Matches</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'bracket' %}active{% endif %}" href="{{ url_for('bracket') }}">Tournament bracket</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}">About</a>
-                        </li>
-                    </ul>
-                    <!-- <form class="d-flex">
-                            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-                            <button class="btn btn-outline-light" type="submit">Search</button>
-                        </form> -->
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor02"
+                        aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarColor02">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" aria-current="page" href="{{ url_for('index') }}"
+                                style="{% if request.endpoint == 'index' %}color: #333399;{% else %}color: black;{% endif %}">Predictor</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'groups' %}active{% endif %}" href="{{url_for('groups')}}"
+                                style="{% if request.endpoint == 'groups' %}color: #333399;{% else %}color: black;{% endif %}">Groups</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'matches' %}active{% endif %}" href="{{ url_for('matches') }}"
+                                style="{% if request.endpoint == 'matches' %}color: #333399;{% else %}color: black;{% endif %}">Matches</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'bracket' %}active{% endif %}" href="{{ url_for('bracket') }}"
+                                style="{% if request.endpoint == 'bracket' %}color: #333399;{% else %}color: black;{% endif %}">Tournament bracket</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'forum' %}active{% endif %}" href="{{ url_for('forum') }}"
+                                style="{% if request.endpoint == 'forum' %}color: #333399;{% else %}color: black;{% endif %}">Fan Forum</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}"
+                                style="{% if request.endpoint == 'about' %}color: #333399;{% else %}color: black;{% endif %}">About</a>
+                            </li>
+                        </ul>
+                        <!-- <form class="d-flex">
+                                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                                <button class="btn btn-outline-light" type="submit">Search</button>
+                            </form> -->
+                    </div>
                 </div>
             </div>
+            <div class="col-md-1">
+                <img class="vi_img_class" id="video" src="../static/vi_img.png" alt="img">
+                <img class="ue_img_class" id="uefa" src="../static/ue_img.png" alt="img">
             </div>
         </nav>
         {%- endblock navbar %}
@@ -92,7 +109,33 @@
            <!-- </div>
         </div> -->
 
+        <div class="p-4 rounded">
+            <div class="row">
 
+                <div id="firstSection" class="col-md-1 d-flex align-items-center">
+                    <img id="profilPhoto" src="../static/badge_shrink.png" alt="badge_shrink">
+                    <span id="less100">UEFA EURO 2024</span>
+                    <span id="less">
+                        <p>↪︎ Germany, Europa 2024</p>
+                        <p>Final:  Olimpia Stadion  14.07</p>
+                        <p>RESPECT AND EQUALITY</p>
+                    </span>
+                </div>
+
+
+                <div id="secondSection" class="col-md-6";>
+                    <p id="name"> Unity in the team, group in unity</p>
+                    <p id="anniversary">EMOTIONS, RIVALRY, HONESTY</p>
+                </div>
+
+                <div id="thirdSection" class="col-md-5";>
+                    <p id="localization">↪︎ Germany, Europa 2024</p>
+                    <p id="mail">Final:  Olimpia Stadion  14.07</p>
+                    <p id="tel">RESPECT AND EQUALITY</p>
+                </div>
+
+            </div>
+        </div>
 
           {% block content -%}
           {%- endblock content %}
