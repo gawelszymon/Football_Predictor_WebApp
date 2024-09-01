@@ -24,8 +24,7 @@ def fetch_matches(url, group_name):
     return matches
 
 api_urls = [
-    'https://www.sofascore.com/api/v1/unique-tournament/1/season/56953/events/next/0',
-    'https://www.sofascore.com/api/v1/unique-tournament/1/season/56953/events/next/1'
+    'https://www.sofascore.com/api/v1/unique-tournament/1/season/56953/team-events/total',
 ]
 
 group_name = 'Group B'
