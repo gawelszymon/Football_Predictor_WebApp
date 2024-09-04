@@ -7,16 +7,15 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
 }
 
-url = "https://www.transfermarkt.pl/weltmeisterschaft-2022/gesamtspielplan/pokalwettbewerb/WM22/saison_id/2021"
+url = "https://www.transfermarkt.pl/weltmeisterschaft-2006/gesamtspielplan/pokalwettbewerb/WM06/saison_id/2005"
 
 response = requests.get(url, headers=headers)
 
-conn = sqlite3.connect('matches.db')
+conn = sqlite3.connect('worldcup2006_matches_info.db')
 cursor = conn.cursor()
 
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS matches (
-        match_id TEXT PRIMARY KEY,
         team1_id TEXT,
         team1_name TEXT,
         team1_goals INTEGER,
@@ -28,23 +27,30 @@ cursor.execute('''
     )
 ''')
 
-def save_match_to_db(match):
+def match_exists(team1_name, team2_name, team1_goals, team2_goals):
     cursor.execute('''
-        INSERT OR REPLACE INTO matches 
-        (match_id, team1_name, team1_goals, team2_name, team2_goals, team1_penalties, team2_penalties, team1_id, team2_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        match['match_id'],
-        match['team1_name'],
-        match.get('team1_goals'),
-        match['team2_name'],
-        match.get('team2_goals'),
-        match.get('team1_penalties'),
-        match.get('team2_penalties'),
-        match['team1_id'],
-        match['team2_id']
-    ))
-    conn.commit()
+        SELECT 1 FROM matches WHERE team1_name = ? AND team2_name = ? 
+        AND team1_goals = ? AND team2_goals = ?
+    ''', (team1_name, team2_name, team1_goals, team2_goals))
+    return cursor.fetchone() is not None
+
+def save_match_to_db(match):
+    if not match_exists(match['team1_name'], match['team2_name'], match.get('team1_goals'), match.get('team2_goals')):
+        cursor.execute('''
+            INSERT INTO matches 
+            (team1_name, team1_goals, team2_name, team2_goals, team1_penalties, team2_penalties, team1_id, team2_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            match['team1_name'],
+            match.get('team1_goals'),
+            match['team2_name'],
+            match.get('team2_goals'),
+            match.get('team1_penalties'),
+            match.get('team2_penalties'),
+            match['team1_id'],
+            match['team2_id']
+        ))
+        conn.commit()
 
 if response.status_code == 200:
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -55,9 +61,9 @@ if response.status_code == 200:
 
     for row in table_rows:
         cells = row.find_all('td')
-        if len(cells) >= 8:
-            team1_anchor = cells[3].find('a')
-            team2_anchor = cells[7].find('a')
+        if len(cells) >= 6:
+            team1_anchor = cells[1].find('a')
+            team2_anchor = cells[5].find('a')
 
             if team1_anchor and team2_anchor:
                 team1_name = team1_anchor.text.strip()
@@ -69,12 +75,12 @@ if response.status_code == 200:
                 team1_id = team1_anchor['href'].split('/')[-3]
                 team2_id = team2_anchor['href'].split('/')[-3]
 
-                result_link = cells[5].find('a')
+                result_link = cells[3].find('a')
                 result = result_link.text if result_link else 'No Result'
                 match_id = result_link['href'].split('/')[-1] if result_link else 'No Match ID'
 
                 if "No Result" not in result:
-                    result_link = cells[5].find('a')
+                    result_link = cells[3].find('a')
                     if result_link:
                         result_text = result_link.get_text().strip()
 
@@ -106,7 +112,6 @@ if response.status_code == 200:
                             team1_penalties = team2_penalties = None
 
                         matches.append({
-                            "match_id": match_id,
                             "team1_name": team1_name,
                             "team1_goals": team1_goals,
                             "team2_name": team2_name,
@@ -118,7 +123,7 @@ if response.status_code == 200:
                         })
 
     for match in matches:
-        print(f"Match ID: {match['match_id']} | {match['team1_name']} ({match['team1_id']}) {match['team1_goals']} : {match['team2_goals']} {match['team2_name']} ({match['team2_id']}) | Penalties: {match['team1_penalties']} : {match['team2_penalties']}")
+        print(f"{match['team1_name']} ({match['team1_id']}) {match['team1_goals']} : {match['team2_goals']} {match['team2_name']} ({match['team2_id']}) | Penalties: {match['team1_penalties']} : {match['team2_penalties']}")
         save_match_to_db(match)
 
     conn.close()
