@@ -6,12 +6,14 @@ import time
 import re
 import sqlite3
 
+
 # Funkcja do oczyszczania nazw drużyn
 def clean_team_name(name):
     words_to_remove = ["Zwycięzca", "Awans"]
     for word in words_to_remove:
         name = name.replace(word, "").strip()
     return name
+
 
 # Ścieżka do chromedrivera
 driver_path = 'C:/webdriver/chromedriver-win64/chromedriver.exe'  # Zaktualizuj do prawidłowej ścieżki do chromedriver
@@ -56,12 +58,11 @@ CREATE TABLE IF NOT EXISTS match_results (
     team_id2 TEXT,
     goals_team_id1 INTEGER,
     goals_team_id2 INTEGER,
-    team1_stats TEXT,
-    team2_stats TEXT
+    penalty_score TEXT
 )
 ''')
 
-# Przetwarzanie meczów z ograniczeniem do 31
+# Przetwarzanie meczów z ograniczeniem do 64
 for match in matches:
     if match_count >= 64:
         break
@@ -74,57 +75,42 @@ for match in matches:
     home_score = match.find('div', class_='event__score--home').get_text(strip=True)
     away_score = match.find('div', class_='event__score--away').get_text(strip=True)
 
-    # Pobieranie linku do szczegółów meczu i kodu meczu
+    # Pobieranie linku do szczegółów meczu
     match_link = match.find('a', class_='eventRowLink')['href']
-    match_code = re.search(r'\/mecz\/(.*?)\/', match_link).group(1)
 
-    # Tworzenie URL do szczegółów statystyk
-    stats_url = f"https://www.flashscore.pl/mecz/{match_code}/#/szczegoly-meczu/statystyki-meczu/0"
+    # Tworzenie URL do szczegółów meczu
+    detail_url = f"https://www.flashscore.pl{match_link}#/szczegoly-meczu/szczegoly-meczu"
+    driver.get(detail_url)
+    time.sleep(5)  # Czekanie na załadowanie strony ze szczegółami meczu
 
-    # Odwiedzenie strony z detalami meczu
-    driver.get(stats_url)
-    time.sleep(5)  # Czekanie na załadowanie strony ze statystykami
-
-    # Pobranie źródła strony
-    stats_page_source = driver.page_source
+    # Pobranie źródła strony ze szczegółami
+    detail_page_source = driver.page_source
 
     # Analiza HTML przy użyciu BeautifulSoup
-    stats_soup = BeautifulSoup(stats_page_source, 'html.parser')
+    detail_soup = BeautifulSoup(detail_page_source, 'html.parser')
 
-    # Pobieranie statystyk meczu
-    stats_divs = stats_soup.find_all('div', class_='_row_ciop9_8')
+    # Szukanie sekcji z rzutami karnymi
+    penalty_section = detail_soup.find('div', class_='smv__incidentsHeader section__title')
 
-    # Inicjalizacja zmiennych dla statystyk
-    team1_stats = ''
-    team2_stats = ''
-
-    for stat in stats_divs:
-        category = stat.find('div', class_='_category_y3bbr_4').get_text(strip=True)
-        home_value = stat.find('div', class_='_homeValue_udiib_9').get_text(strip=True)
-        away_value = stat.find('div', class_='_awayValue_udiib_13').get_text(strip=True)
-        team1_stats += f'{category}: {home_value} | '
-        team2_stats += f'{category}: {away_value} | '
-
-    # Usuwanie niepotrzebnych separatorów na końcu
-    team1_stats = team1_stats.strip(' |')
-    team2_stats = team2_stats.strip(' |')
+    penalty_score = None
+    if penalty_section and 'Rzuty karne' in penalty_section.get_text():
+        penalty_score = penalty_section.find_all('div')[1].text.strip()
+        print(f'Penalty Score: {penalty_score}')
 
     # Zapisywanie wyników do bazy danych
     try:
         cursor.execute('''
         INSERT INTO match_results (
-            team_id1, team_id2, goals_team_id1, goals_team_id2,
-            team1_stats, team2_stats
-        ) VALUES (?, ?, ?, ?, ?, ?)
+            team_id1, team_id2, goals_team_id1, goals_team_id2, penalty_score
+        ) VALUES (?, ?, ?, ?, ?)
         ''', (
-            home_team, away_team, home_score, away_score,
-            team1_stats, team2_stats
+            home_team, away_team, home_score, away_score, penalty_score
         ))
 
         # Potwierdzenie zapisu
         print(f'Data saved: {home_team} {home_score} - {away_team} {away_score}')
-        print(f'Team 1 Stats: {team1_stats}')
-        print(f'Team 2 Stats: {team2_stats}')
+        if penalty_score:
+            print(f'Penalty Score: {penalty_score}')
         print('-' * 50)
 
     except sqlite3.Error as e:
@@ -143,8 +129,8 @@ try:
     print('Database contents:')
     for row in rows:
         print(f'Team 1: {row[0]}, Team 2: {row[1]}, Goals Team 1: {row[2]}, Goals Team 2: {row[3]}')
-        print(f'Team 1 Stats: {row[4]}')
-        print(f'Team 2 Stats: {row[5]}')
+        if row[4]:
+            print(f'Penalty Score: {row[4]}')
         print('-' * 50)
 except sqlite3.Error as e:
     print(f"Error while retrieving data: {e}")
