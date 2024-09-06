@@ -11,7 +11,7 @@ url = "https://www.transfermarkt.pl/weltmeisterschaft-2006/gesamtspielplan/pokal
 
 response = requests.get(url, headers=headers)
 
-conn = sqlite3.connect('worldcup2006_matches_info.db')
+conn = sqlite3.connect('euro2006_matches_info.db')
 cursor = conn.cursor()
 
 cursor.execute('''
