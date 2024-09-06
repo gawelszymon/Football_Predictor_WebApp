@@ -42,6 +42,7 @@ def merge_data(matches, club_stats):
         print(f"Błąd podczas łączenia danych: {e}")
         return None
 
+
 # Funkcja do usunięcia kolumn nienumerycznych oraz tych, które są wynikami meczu (np. liczba bramek)
 def remove_unnecessary_columns(df, is_prediction=False):
     df = df.drop(columns=['team1_penalties', 'team2_penalties'], errors='ignore')
@@ -49,6 +50,22 @@ def remove_unnecessary_columns(df, is_prediction=False):
         # Usuwamy kolumny 'team1_goals' i 'team2_goals' podczas predykcji, ponieważ nie są one potrzebne w fazie predykcji
         df = df.drop(columns=['team1_goals', 'team2_goals'], errors='ignore')
     return df.select_dtypes(include=[np.number])
+
+
+# Funkcja do przygotowania danych predykcyjnych tak, aby zawierały te same cechy co dane treningowe
+def align_columns_with_training_data(euro2024_matches, training_columns):
+    # Znalezienie brakujących kolumn w danych do predykcji
+    missing_cols = set(training_columns) - set(euro2024_matches.columns)
+
+    # Dodanie brakujących kolumn i wypełnienie ich zerami
+    for col in missing_cols:
+        euro2024_matches[col] = 0
+
+    # Upewnienie się, że kolejność kolumn w danych do predykcji odpowiada danym treningowym
+    euro2024_matches = euro2024_matches[training_columns]
+
+    return euro2024_matches
+
 
 # Funkcja do trenowania modelu i przewidywania wyników
 def train_rf_and_predict(tournament_databases, euro2024_matches, output_db):
@@ -83,33 +100,42 @@ def train_rf_and_predict(tournament_databases, euro2024_matches, output_db):
     # Upewnij się, że dane mają odpowiednie kolumny
     if 'team1_goals' not in full_data.columns or 'team2_goals' not in full_data.columns:
         print("Brakuje kolumn 'team1_goals' lub 'team2_goals' w danych treningowych.")
-        print(f"Dostępne kolumny w danych treningowych: {full_data.columns}")
         return
 
-    euro2024_matches = convert_column_types(euro2024_matches)
-    euro2024_matches = remove_unnecessary_columns(euro2024_matches, is_prediction=True)
-
+    # Przygotuj dane treningowe
     X = full_data.drop(columns=['team1_goals', 'team2_goals'], errors='ignore')
     y_team1 = full_data['team1_goals']
     y_team2 = full_data['team2_goals']
 
+    # Rozdzielenie danych na treningowe i testowe
     X_train, X_test, y_train_team1, y_test_team1 = train_test_split(X, y_team1, test_size=0.2, random_state=42)
     _, _, y_train_team2, y_test_team2 = train_test_split(X, y_team2, test_size=0.2, random_state=42)
 
+    # Trening modeli
     rf_team1 = RandomForestRegressor(n_estimators=100, random_state=42)
     rf_team2 = RandomForestRegressor(n_estimators=100, random_state=42)
 
     rf_team1.fit(X_train, y_train_team1)
     rf_team2.fit(X_train, y_train_team2)
 
+    # Przygotowanie danych do predykcji
+    euro2024_matches = convert_column_types(euro2024_matches)
+    euro2024_matches = remove_unnecessary_columns(euro2024_matches, is_prediction=True)
+
+    # Dopasowanie kolumn danych predykcyjnych do danych treningowych
+    euro2024_matches = align_columns_with_training_data(euro2024_matches, X_train.columns)
+
+    # Predykcja wyników
     y_pred_team1 = np.round(rf_team1.predict(euro2024_matches)).astype(int)
     y_pred_team2 = np.round(rf_team2.predict(euro2024_matches)).astype(int)
 
+    # Obsługa remisów
     remisy_idx = np.where(y_pred_team1 == y_pred_team2)[0]
 
     penalty_team1 = np.round(np.random.uniform(3, 5, size=len(remisy_idx))).astype(int)
     penalty_team2 = np.round(np.random.uniform(3, 5, size=len(remisy_idx))).astype(int)
 
+    # Zapis wyników do bazy danych
     conn = sqlite3.connect(output_db)
     results_df = pd.DataFrame({
         'team1_id': euro2024_matches['team1_id'],
@@ -123,7 +149,6 @@ def train_rf_and_predict(tournament_databases, euro2024_matches, output_db):
     conn.close()
 
     print(f"Wyniki zapisane w {output_db}")
-
 # Przykład użycia funkcji
 tournament_databases = [
     {'matches_db': 'worldcup2006_matches_info.db', 'stats_db': 'WC_2006_stats.db', 'name': 'WC 2006'},
