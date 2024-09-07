@@ -78,12 +78,12 @@ errors_data = pd.read_csv('errors_comparison.csv')
 # Definiowanie pozycji i kolorów dla każdej statystyki
 positions = ['Goalkeeper', 'Defense', 'Midfield', 'Attack']
 columns_by_position = {
-    'Goalkeeper': ['minutes', 'yellow_cards', 'red_cards', 'starting_eleven', 'substituted_in', 'on_bench', 'suspended', 'injured', 'absence'],
-    'Defense': ['minutes', 'yellow_cards', 'red_cards', 'goals', 'assists', 'starting_eleven', 'substituted_in', 'on_bench', 'suspended', 'injured', 'absence'],
-    'Midfield': ['minutes', 'yellow_cards', 'red_cards', 'goals', 'assists', 'starting_eleven', 'substituted_in', 'on_bench', 'suspended', 'injured', 'absence'],
-    'Attack': ['minutes', 'yellow_cards', 'red_cards', 'goals', 'assists', 'starting_eleven', 'substituted_in', 'on_bench', 'suspended', 'injured', 'absence']
+    'Goalkeeper': ['minutes', 'yellow_cards', 'red_cards', 'starting_eleven', 'substituted_in', 'on_bench', 'suspended', 'injured', 'absence', 'number_of_matches'],
+    'Defense': ['minutes', 'yellow_cards', 'red_cards', 'goals', 'assists', 'starting_eleven', 'substituted_in', 'on_bench', 'suspended', 'injured', 'absence', 'number_of_matches'],
+    'Midfield': ['minutes', 'yellow_cards', 'red_cards', 'goals', 'assists', 'starting_eleven', 'substituted_in', 'on_bench', 'suspended', 'injured', 'absence', 'number_of_matches'],
+    'Attack': ['minutes', 'yellow_cards', 'red_cards', 'goals', 'assists', 'starting_eleven', 'substituted_in', 'on_bench', 'suspended', 'injured', 'absence', 'number_of_matches']
 }
-colors = ['blue', 'green', 'red', 'orange', 'purple', 'cyan', 'magenta', 'brown', 'pink', 'gray', 'olive']
+colors = ['blue', 'green', 'red', 'orange', 'purple', 'cyan', 'magenta', 'brown', 'pink', 'gray', 'olive', 'yellow']
 
 # Przeglądanie danych dla każdej pozycji i rysowanie wykresów
 for position in positions:

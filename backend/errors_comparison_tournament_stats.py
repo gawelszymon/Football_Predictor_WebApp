@@ -10,7 +10,7 @@ query_actual = 'SELECT * FROM tournament_stats'  # Dopasuj nazwę tabeli
 actual_df = pd.read_sql(query_actual, conn_actual)
 
 # Załaduj dane przewidywane
-query_predicted = 'SELECT * FROM tournament_stats_predicted_rf_combined'  # Dopasuj nazwę tabeli
+query_predicted = 'SELECT * FROM final_tournament_stats_predicted_rf_weighted'  # Dopasuj nazwę tabeli
 predicted_df = pd.read_sql(query_predicted, conn_predicted)
 
 # Zamknij połączenia z bazą danych
@@ -21,7 +21,7 @@ conn_predicted.close()
 merged_df = pd.merge(actual_df, predicted_df, on=['team_id', 'position'], suffixes=('_actual', '_predicted'))
 
 # Wyliczenie błędów (różnica między rzeczywistymi a przewidywanymi wartościami dla wybranych kolumn)
-error_cols = ['minutes', 'yellow_cards', 'red_cards', 'goals', 'assists']  # Kolumny, dla których liczysz błędy
+error_cols = ['minutes', 'yellow_cards', 'red_cards', 'goals', 'assists', 'starting_eleven', 'substituted_in', 'on_bench', 'suspended', 'injured', 'absence', 'number_of_matches']  # Kolumny, dla których liczysz błędy
 
 for col in error_cols:
     merged_df[f'{col}_error'] = merged_df[f'{col}_actual'] - merged_df[f'{col}_predicted']

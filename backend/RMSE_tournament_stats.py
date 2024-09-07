@@ -62,7 +62,7 @@ errors_data = pd.read_csv('errors_comparison.csv')
 
 # Definiowanie pozycji i statystyk
 positions = ['Goalkeeper', 'Defense', 'Midfield', 'Attack']
-stats = ['minutes', 'yellow_cards', 'red_cards', 'goals', 'assists', 'starting_eleven', 'substituted_in', 'on_bench', 'suspended', 'injured', 'absence']
+stats = ['minutes', 'yellow_cards', 'red_cards', 'goals', 'assists', 'starting_eleven', 'substituted_in', 'on_bench', 'suspended', 'injured', 'absence', 'number_of_matches']
 
 # Przeglądanie każdej statystyki, zbieranie RMSE dla każdej pozycji i rysowanie wykresu
 for stat in stats:

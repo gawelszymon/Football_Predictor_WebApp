@@ -107,7 +107,7 @@ def aggregate_team_stats_by_position(team_id, teams, player_stats, market_value,
     # Get market value data before the tournament
     team_market_values = market_value[market_value['player_id'].isin(team_players)]
 
-    # Group by general position and calculate average stats for each general position
+    # Group by general position and calculate summed stats for each general position
     for general_position, players_in_general_position in team_market_values.groupby(
             market_value['position'].map(position_mapping)):
 
@@ -118,28 +118,49 @@ def aggregate_team_stats_by_position(team_id, teams, player_stats, market_value,
         # Handle club stats (from market_value_history)
         club_stats_for_general_position = players_in_general_position[
             ['value', 'ranking', 'clean_sheets', 'conceded_goals', 'appearances', 'goals', 'assists', 'yellow_cards',
-             'red_cards', 'minutes_played']].mean().to_dict()
+             'red_cards', 'minutes_played']].sum().to_dict()
+
+        # Set goalkeeper-related stats to None for non-goalkeepers
+        if general_position != 'Goalkeeper':
+            club_stats_for_general_position['clean_sheets'] = None
+            club_stats_for_general_position['conceded_goals'] = None
+
+        # Set outfield-related stats to None for goalkeepers
+        if general_position == 'Goalkeeper':
+            club_stats_for_general_position['goals'] = None
+            club_stats_for_general_position['assists'] = None
+
         upsert_club_stats(cursor, team_id, general_position, club_stats_for_general_position)
 
         # Handle tournament stats (from player_stats)
         if general_position == 'Goalkeeper':
-            available_columns = ['clean_sheets', 'conceded_goals', 'minutes', 'yellow_cards', 'red_cards',
+            available_columns = ['minutes', 'yellow_cards', 'red_cards',
                                  'starting_eleven', 'substituted_in', 'on_bench', 'suspended', 'injured', 'absence']
+            tournament_stats_for_general_position = stats_for_general_position[available_columns].sum().to_dict()
+
+            # Set non-goalkeeper stats to None for goalkeepers
+            tournament_stats_for_general_position['goals'] = None
+            tournament_stats_for_general_position['assists'] = None
         else:
             available_columns = ['goals', 'assists', 'minutes', 'yellow_cards', 'red_cards',
                                  'starting_eleven', 'substituted_in', 'on_bench', 'suspended', 'injured', 'absence']
 
-        # Filter columns that exist in stats_for_position
-        available_columns = [col for col in available_columns if col in stats_for_general_position.columns]
+            # Make sure the columns actually exist in the dataframe
+            available_columns = [col for col in available_columns if col in stats_for_general_position.columns]
 
-        tournament_stats_for_general_position = stats_for_general_position[available_columns].mean().to_dict()
+            tournament_stats_for_general_position = stats_for_general_position[available_columns].sum().to_dict()
+
+            # Set goalkeeper stats to None for non-goalkeepers
+            tournament_stats_for_general_position['clean_sheets'] = None
+            tournament_stats_for_general_position['conceded_goals'] = None
 
         upsert_tournament_stats(cursor, team_id, general_position, tournament_stats_for_general_position)
 
 
+
 # Example for processing Euro 2024
 def process_euro_2024():
-    conn = sqlite3.connect('euro_2012_stats.db')
+    conn = sqlite3.connect('WC_2022_stats.db')
     cursor = conn.cursor()
 
     # Create tables for club stats and tournament stats
@@ -181,10 +202,10 @@ def process_euro_2024():
     ''')
 
     # Load data from databases
-    matches_2024 = load_table('euro2012_matches_info.db', 'matches')
-    teams_2024 = load_table('euro1_teams2012.db', 'teams')
-    player_stats_2024 = load_table('euro1_teams2012.db', 'players_stats')
-    market_value_2024 = load_table('euro1_teams2012.db', 'market_value_history')
+    matches_2024 = load_table('worldcup2022_matches_info.db', 'matches')
+    teams_2024 = load_table('world_cup1_teams2022.db', 'teams')
+    player_stats_2024 = load_table('world_cup1_teams2022.db', 'players_stats')
+    market_value_2024 = load_table('world_cup1_teams2022.db', 'market_value_history')
 
     for _, match in matches_2024.iterrows():
         team1_id = match['team1_id']
