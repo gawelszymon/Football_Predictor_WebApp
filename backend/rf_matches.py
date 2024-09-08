@@ -1,3 +1,4 @@
+import random
 import sqlite3
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
@@ -13,70 +14,71 @@ def load_full_table(db_path, table_name):
     return df
 
 
-# Funkcja do przygotowania danych meczowych i klubowych
+# Funkcja do przygotowania danych meczowych i klubowych z poprawnym przypisaniem team1 i team2
 def merge_club_stats_for_prediction(matches, club_stats):
-    matches['team1_id'] = matches['team1_id'].astype(int)
-    matches['team2_id'] = matches['team2_id'].astype(int)
-    club_stats['team_id'] = club_stats['team_id'].astype(int)
+    matches.loc[:, 'team1_id'] = matches['team1_id'].astype(int)
+    matches.loc[:, 'team2_id'] = matches['team2_id'].astype(int)
+    club_stats.loc[:, 'team_id'] = club_stats['team_id'].astype(int)
 
-    team1_stats = club_stats.rename(columns=lambda col: f"team1_{col}" if col != 'team_id' else col)
-    team2_stats = club_stats.rename(columns=lambda col: f"team2_{col}" if col != 'team_id' else col)
+    # Agregujemy statystyki dla drużyny, żeby nie było powtórzeń
+    aggregated_stats = club_stats.groupby('team_id').agg({
+        'ranking': 'mean',
+        'clean_sheets': 'sum',
+        'conceded_goals': 'sum',
+        'value': 'sum',
+        'appearances': 'sum',
+        'goals': 'sum',
+        'assists': 'sum',
+        'yellow_cards': 'sum',
+        'red_cards': 'sum',
+        'minutes_played': 'sum'
+    }).reset_index()
 
+    # Dołączanie statystyk dla team1
+    team1_stats = aggregated_stats.rename(columns=lambda col: f"team1_{col}" if col != 'team_id' else col)
     merged_df = matches.merge(team1_stats, left_on='team1_id', right_on='team_id', how='left')
+
+    # Dołączanie statystyk dla team2
+    team2_stats = aggregated_stats.rename(columns=lambda col: f"team2_{col}" if col != 'team_id' else col)
     merged_df = merged_df.merge(team2_stats, left_on='team2_id', right_on='team_id', how='left')
+
+    # Usuwamy zbędne kolumny 'team_id_x' i 'team_id_y', które wynikają z podwójnego merge
+    merged_df.drop(columns=['team_id_x', 'team_id_y'], inplace=True)
 
     return merged_df
 
 
 # Funkcja do trenowania modelu Random Forest
 def train_rf_model(X, y):
-    rf_model = RandomForestRegressor(n_estimators=200, random_state=42)
+    rf_model = RandomForestRegressor(n_estimators=2000, max_depth=30, min_samples_split=10, min_samples_leaf=5, bootstrap=False, random_state=42)
     rf_model.fit(X, y)
     return rf_model
 
 
-# Funkcja do przewidywania wyników regulaminowego czasu gry
-def predict_euro_2024_matches(rf_team1, rf_team2, club_stats_2024):
-    club_stats_2024_team1 = club_stats_2024.rename(columns={'goals': 'team1_goals_y'})
-    club_stats_2024_team2 = club_stats_2024.rename(columns={'goals': 'team2_goals_y'})
+def predict_euro_2024_matches(rf_team1, rf_team2, club_stats_2024, matches_2024):
+    # Przygotowanie danych dla predykcji wyników meczów Euro 2024
+    X_2024 = merge_club_stats_for_prediction(matches_2024, club_stats_2024)
+    features_team1 = ['team1_appearances', 'team1_goals_y', 'team1_assists', 'team1_ranking', 'team1_value']
+    features_team2 = ['team2_appearances', 'team2_goals_y', 'team2_assists', 'team2_ranking', 'team2_value']
+    X_euro_2024 = X_2024[features_team1 + features_team2]
 
-    club_stats_2024_team1 = club_stats_2024_team1.rename(
-        columns=lambda col: f"team1_{col}" if col in ['ranking', 'value', 'appearances', 'assists'] else col)
-    club_stats_2024_team2 = club_stats_2024_team2.rename(
-        columns=lambda col: f"team2_{col}" if col in ['ranking', 'value', 'appearances', 'assists'] else col)
+    # Predykcja na podstawie Random Forest
+    team1_goals_pred = rf_team1.predict(X_euro_2024)
+    team2_goals_pred = rf_team2.predict(X_euro_2024)
 
-    X_euro_2024 = pd.concat(
-        [club_stats_2024_team1[['team1_ranking', 'team1_value', 'team1_appearances', 'team1_goals_y', 'team1_assists']],
-         club_stats_2024_team2[
-             ['team2_ranking', 'team2_value', 'team2_appearances', 'team2_goals_y', 'team2_assists']]], axis=1)
+    # Obliczanie różnicy w statystykach między drużynami (np. na podstawie wartości zespołu lub rankingu)
+    team1_advantage = X_2024['team1_value'] - X_2024['team2_value']  # Możesz to zmienić na inną statystykę
+    advantage_factor = 0.0000000006  # Czynnik, który decyduje, jak duży wpływ mają różnice statystyk na wynik
 
-    team1_goals_pred = np.round(rf_team1.predict(X_euro_2024)).astype(int)
-    team2_goals_pred = np.round(rf_team2.predict(X_euro_2024)).astype(int)
+    # Jeśli drużyna 1 ma przewagę w statystykach, zwiększamy jej przewidywaną liczbę goli
+    team1_goals_pred += advantage_factor * team1_advantage
+    team2_goals_pred -= advantage_factor * team1_advantage  # Zmniejszamy wynik dla przeciwnika
+
+    # Zaokrąglamy wyniki do liczb całkowitych i upewniamy się, że wynik goli nie jest ujemny
+    team1_goals_pred = np.clip(np.round(team1_goals_pred), 0, None).astype(int)
+    team2_goals_pred = np.clip(np.round(team2_goals_pred), 0, None).astype(int)
+
     return team1_goals_pred, team2_goals_pred
-
-
-# Funkcja do przewidywania wyników rzutów karnych (penalty shootout) - z ograniczeniami
-def predict_penalty_shootouts(rf_penalty, X_penalty):
-    # Symulujemy liczbę bramek w rzutach karnych dla obu drużyn
-    penalty_goals_pred_team1 = np.clip(np.round(rf_penalty.predict(X_penalty)).astype(int), 0, 5)
-    penalty_goals_pred_team2 = np.clip(np.round(rf_penalty.predict(X_penalty)).astype(int), 0, 5)
-
-    # Zapewniamy, że wynik jest możliwy w rzeczywistej serii rzutów karnych
-    for i in range(len(penalty_goals_pred_team1)):
-        if penalty_goals_pred_team1[i] == penalty_goals_pred_team2[i]:
-            # Losowo zwiększamy wynik jednej z drużyn, aby uniknąć remisu
-            if penalty_goals_pred_team1[i] < 5:
-                penalty_goals_pred_team1[i] += 1
-            else:
-                penalty_goals_pred_team2[i] -= 1  # Zmniejszamy drugą drużynę, aby uniknąć remisu przy 5:5
-
-        # Sprawdzamy najszybszy możliwy wynik 3:0
-        if penalty_goals_pred_team1[i] == 3 and penalty_goals_pred_team2[i] == 0:
-            continue  # Taki wynik jest ok
-        elif penalty_goals_pred_team2[i] == 3 and penalty_goals_pred_team1[i] == 0:
-            continue  # Taki wynik jest ok
-
-    return penalty_goals_pred_team1, penalty_goals_pred_team2
 
 
 # Funkcja do zapisu przewidywanych wyników do nowej bazy danych
@@ -85,179 +87,143 @@ def save_predictions_to_new_db(predictions, new_db_path):
     predictions.to_sql('predicted_matches', conn, if_exists='replace', index=False)
     conn.close()
 
-# Funkcja do wczytywania tabel z bazy danych
-def load_full_table(db_path, table_name):
-    conn = sqlite3.connect(db_path)
-    query = f"SELECT * FROM {table_name};"
-    df = pd.read_sql_query(query, conn)
-    conn.close()
-    return df
+# Funkcja do przewidywania wyników rzutów karnych
+def predict_penalty_winner(rf_penalty, X_penalty):
+    penalty_features = ['team1_appearances', 'team1_goals_y', 'team1_assists', 'team1_ranking', 'team1_value',
+                        'team2_appearances', 'team2_goals_y', 'team2_assists', 'team2_ranking', 'team2_value']
+    X_penalty_filtered = X_penalty[penalty_features]
+
+    # Przewidywanie zwycięzcy rzutów karnych
+    penalty_winner = np.round(rf_penalty.predict(X_penalty_filtered)).astype(int)
+    return penalty_winner
 
 
-# Funkcja do przygotowania danych meczowych i klubowych
-def merge_club_stats_for_prediction(matches, club_stats):
-    matches['team1_id'] = matches['team1_id'].astype(int)
-    matches['team2_id'] = matches['team2_id'].astype(int)
-    club_stats['team_id'] = club_stats['team_id'].astype(int)
+def run_weighted_rf_predictions_for_euro_2024(tournaments, new_db_path):
+    rf_models_team1 = []
+    rf_models_team2 = []
+    tournament_weights = []
 
-    team1_stats = club_stats.rename(columns=lambda col: f"team1_{col}" if col != 'team_id' else col)
-    team2_stats = club_stats.rename(columns=lambda col: f"team2_{col}" if col != 'team_id' else col)
+    # Zmienna kontrolująca maksymalną wagę dla modelu o MSE równym 0
+    max_weight = 1000
 
-    merged_df = matches.merge(team1_stats, left_on='team1_id', right_on='team_id', how='left')
-    merged_df = merged_df.merge(team2_stats, left_on='team2_id', right_on='team_id', how='left')
-
-    return merged_df
-
-
-# Funkcja do trenowania modelu Random Forest
-def train_rf_model(X, y):
-    rf_model = RandomForestRegressor(n_estimators=200, random_state=42)
-    rf_model.fit(X, y)
-    return rf_model
-
-
-# Funkcja do przewidywania wyników regulaminowego czasu gry
-def predict_euro_2024_matches(rf_team1, rf_team2, club_stats_2024):
-    club_stats_2024_team1 = club_stats_2024.rename(columns={'goals': 'team1_goals_y'})
-    club_stats_2024_team2 = club_stats_2024.rename(columns={'goals': 'team2_goals_y'})
-
-    club_stats_2024_team1 = club_stats_2024_team1.rename(
-        columns=lambda col: f"team1_{col}" if col in ['ranking', 'value', 'appearances', 'assists'] else col)
-    club_stats_2024_team2 = club_stats_2024_team2.rename(
-        columns=lambda col: f"team2_{col}" if col in ['ranking', 'value', 'appearances', 'assists'] else col)
-
-    X_euro_2024 = pd.concat(
-        [club_stats_2024_team1[['team1_ranking', 'team1_value', 'team1_appearances', 'team1_goals_y', 'team1_assists']],
-         club_stats_2024_team2[
-             ['team2_ranking', 'team2_value', 'team2_appearances', 'team2_goals_y', 'team2_assists']]], axis=1)
-
-    team1_goals_pred = np.round(rf_team1.predict(X_euro_2024)).astype(int)
-    team2_goals_pred = np.round(rf_team2.predict(X_euro_2024)).astype(int)
-    return team1_goals_pred, team2_goals_pred
-
-
-# Funkcja do przewidywania wyników rzutów karnych (penalty shootout)
-def predict_penalty_shootouts(rf_penalty, X_penalty):
-    # Przewidujemy wynik dla obu drużyn, ale musimy korygować niemożliwe wartości
-    penalty_goals_pred_team1 = np.clip(np.round(rf_penalty.predict(X_penalty)).astype(int), 0, 5)
-    penalty_goals_pred_team2 = np.clip(np.round(rf_penalty.predict(X_penalty)).astype(int), 0, 5)
-
-    # Zabezpieczenie przed niemożliwymi wynikami
-    for i in range(len(penalty_goals_pred_team1)):
-        # Minimalny wynik dla zwycięstwa to 3:0, 4:1, 5:4 itp.
-        if penalty_goals_pred_team1[i] < 3 and penalty_goals_pred_team2[i] == 0:
-            penalty_goals_pred_team1[i] = 3
-        elif penalty_goals_pred_team1[i] == penalty_goals_pred_team2[i]:
-            # Remis — musimy dodać bramkę, aby wyłonić zwycięzcę
-            penalty_goals_pred_team1[i] = 5
-            penalty_goals_pred_team2[i] = 4
-
-        # Jeśli wynik jest 4:3 lub podobny, zmień na wynik rozstrzygający
-        if penalty_goals_pred_team1[i] == 4 and penalty_goals_pred_team2[i] == 3:
-            penalty_goals_pred_team1[i] = 5
-            penalty_goals_pred_team2[i] = 3
-
-        # Poprawienie minimalnej przewagi, aby wyniki były poprawne
-        if penalty_goals_pred_team1[i] - penalty_goals_pred_team2[i] < 2 and penalty_goals_pred_team1[i] >= 3:
-            penalty_goals_pred_team1[i] = penalty_goals_pred_team2[i] + 2
-
-    return penalty_goals_pred_team1, penalty_goals_pred_team2
-
-
-
-# Funkcja do zapisu przewidywanych wyników do nowej bazy danych
-def save_predictions_to_new_db(predictions, new_db_path):
-    conn = sqlite3.connect(new_db_path)
-    predictions.to_sql('predicted_matches', conn, if_exists='replace', index=False)
-    conn.close()
-
-
-# Główna funkcja do trenowania modelu i przewidywania wyników
-def run_rf_predictions_for_euro_2024(tournaments, new_db_path):
-    combined_X = []
-    combined_y_team1 = []
-    combined_y_team2 = []
-    combined_penalty_matches = []
-
-    # Wczytujemy dane z przeszłych turniejów
+    # Wczytujemy dane z każdego turnieju, trenujemy model, liczymy MSE i zapisujemy wagi
     for tournament in tournaments:
         print(f"\nProcessing {tournament['name']}...")
 
+        # Ładowanie danych z turnieju
         club_stats = load_full_table(tournament['stats_db'], 'club_stats')
         matches = load_full_table(tournament['matches_db'], 'matches')
 
         merged_data = merge_club_stats_for_prediction(matches, club_stats)
 
-        features = ['team1_ranking', 'team1_value', 'team1_appearances', 'team1_goals_y', 'team1_assists',
-                    'team2_ranking', 'team2_value', 'team2_appearances', 'team2_goals_y', 'team2_assists']
+        # Wybieramy odpowiednie cechy do trenowania
+        features = ['team1_appearances', 'team1_goals_y', 'team1_assists', 'team1_ranking', 'team1_value',
+                    'team2_appearances', 'team2_goals_y', 'team2_assists', 'team2_ranking', 'team2_value']
 
         X = merged_data[features]
         y_team1 = merged_data['team1_goals_x'].astype(int)
         y_team2 = merged_data['team2_goals_x'].astype(int)
 
-        penalty_matches = merged_data[~merged_data['team1_penalties'].isna() | ~merged_data['team2_penalties'].isna()]
-        penalty_features = ['team1_ranking', 'team1_value', 'team1_appearances', 'team1_goals_y', 'team1_assists',
-                            'team2_ranking', 'team2_value', 'team2_appearances', 'team2_goals_y', 'team2_assists']
-        penalty_X = penalty_matches[penalty_features]
+        # Trenujemy modele
+        rf_team1 = train_rf_model(X, y_team1)
+        rf_team2 = train_rf_model(X, y_team2)
 
-        combined_X.append(X)
-        combined_y_team1.append(y_team1)
-        combined_y_team2.append(y_team2)
-        combined_penalty_matches.append(penalty_X)
+        # Ocena modelu na danych treningowych za pomocą MSE
+        team1_predictions = np.round(rf_team1.predict(X)).astype(int)
+        team2_predictions = np.round(rf_team2.predict(X)).astype(int)
 
-    X_combined = pd.concat(combined_X)
-    y_team1_combined = pd.concat(combined_y_team1)
-    y_team2_combined = pd.concat(combined_y_team2)
-    penalty_X_combined = pd.concat(combined_penalty_matches)
+        mse_team1 = np.mean((y_team1 - team1_predictions) ** 2)
+        mse_team2 = np.mean((y_team2 - team2_predictions) ** 2)
 
-    rf_team1 = train_rf_model(X_combined, y_team1_combined)
-    rf_team2 = train_rf_model(X_combined, y_team2_combined)
-    rf_penalty = train_rf_model(penalty_X_combined, y_team1_combined[:len(penalty_X_combined)])
+        # Obliczamy średnią MSE dla turnieju
+        average_mse = (mse_team1 + mse_team2) / 2
 
+        # Obliczamy wagę dla turnieju na podstawie średniej MSE, jeśli MSE wynosi 0, ustalamy maksymalną wagę
+        if average_mse == 0:
+            tournament_weight = max_weight
+        else:
+            tournament_weight = 1 / average_mse
+
+        # Drukowanie wag dla turnieju
+        print(f"Turniej: {tournament['name']}")
+        print(f"  Średnia MSE: {average_mse}")
+        print(f"  Waga turnieju: {tournament_weight}\n")
+
+        # Przechowujemy modele i ich wspólną wagę
+        rf_models_team1.append((rf_team1, tournament_weight))
+        rf_models_team2.append((rf_team2, tournament_weight))
+
+    # Ładowanie danych dla Euro 2024
     club_stats_2024 = load_full_table('euro_2024_stats.db', 'club_stats')
+    matches_2024 = load_full_table('euro2024_matches_info.db', 'matches')
 
-    team1_goals_pred, team2_goals_pred = predict_euro_2024_matches(rf_team1, rf_team2, club_stats_2024)
+    # Przewidywania dla Euro 2024 na podstawie trenowanych modeli
+    final_team1_predictions = np.zeros(len(matches_2024))
+    final_team2_predictions = np.zeros(len(matches_2024))
+    total_weights = 0
 
-    penalty_shootout_needed = team1_goals_pred == team2_goals_pred
+    for (rf_team1, weight), (rf_team2, _) in zip(rf_models_team1, rf_models_team2):
+        team1_pred_2024, team2_pred_2024 = predict_euro_2024_matches(rf_team1, rf_team2, club_stats_2024, matches_2024)
+        final_team1_predictions += team1_pred_2024 * weight
+        final_team2_predictions += team2_pred_2024 * weight
+        total_weights += weight
 
-    # Inicjalizujemy wyniki rzutów karnych jako NaN
-    penalty_goals_team1_pred = np.full(len(team1_goals_pred), np.nan)
-    penalty_goals_team2_pred = np.full(len(team2_goals_pred), np.nan)
+    # Normalizujemy przewidywania na podstawie sumy wag
+    final_team1_predictions /= total_weights
+    final_team2_predictions /= total_weights
 
-    # Przewidujemy rzuty karne tylko dla meczów, które tego potrzebują
+    # Zaokrąglamy przewidywania do liczb całkowitych
+    final_team1_predictions = np.round(final_team1_predictions).astype(int)
+    final_team2_predictions = np.round(final_team2_predictions).astype(int)
+
+    # Sprawdzamy, które mecze zakończyły się remisem
+    penalty_shootout_needed = final_team1_predictions == final_team2_predictions
+
+    # Filtrowanie meczów, które skończyły się remisem
+    penalty_matches = matches_2024[penalty_shootout_needed]
+
+    # Przypisujemy statystyki tylko dla meczów, które zakończyły się remisem
+    penalty_X = merge_club_stats_for_prediction(penalty_matches, club_stats_2024)
+
+    # Trenujemy model na rzutach karnych
+    rf_penalty = train_rf_model(X, y_team1)  # Możemy użyć tych samych danych co wcześniej do treningu modelu
+
+    penalty_winners = np.full(len(final_team1_predictions), np.nan)
     if penalty_shootout_needed.any():
-        penalty_X_filtered = penalty_X_combined.iloc[:len(penalty_shootout_needed)][penalty_shootout_needed]
+        predicted_winner = predict_penalty_winner(rf_penalty, penalty_X)
 
-        if not penalty_X_filtered.empty:
-            penalty_goals_team1_pred[penalty_shootout_needed], penalty_goals_team2_pred[
-                penalty_shootout_needed] = predict_penalty_shootouts(rf_penalty, penalty_X_filtered)
+        # Zamiana wartości 1 lub 2 na team1_id lub team2_id
+        penalty_winners[penalty_shootout_needed] = np.where(
+            predicted_winner == 1,
+            matches_2024.loc[penalty_shootout_needed, 'team1_id'],
+            matches_2024.loc[penalty_shootout_needed, 'team2_id']
+        )
 
-    # Sprawdzamy długości kolumn
-    print(f"Length check: team1_goals_pred: {len(team1_goals_pred)}, team2_goals_pred: {len(team2_goals_pred)}, "
-          f"penalty_goals_team1_pred: {len(penalty_goals_team1_pred)}, penalty_goals_team2_pred: {len(penalty_goals_team2_pred)}")
+    # Zapisujemy wyniki
+    predictions = pd.DataFrame({
+        'team1_id': matches_2024['team1_id'],
+        'team1_goals_predicted': final_team1_predictions,
+        'team2_id': matches_2024['team2_id'],
+        'team2_goals_predicted': final_team2_predictions,
+        'penalty_shootout_needed': penalty_shootout_needed.astype(int),
+        'penalty_winner': penalty_winners
+    })
 
-    # Upewniamy się, że wszystkie kolumny mają taką samą długość
-    if len(team1_goals_pred) == len(team2_goals_pred) == len(penalty_goals_team1_pred) == len(penalty_goals_team2_pred):
-        predictions = pd.DataFrame({
-            'team1_id': club_stats_2024['team_id'],
-            'team1_goals_predicted': team1_goals_pred,
-            'team2_id': club_stats_2024['team_id'],
-            'team2_goals_predicted': team2_goals_pred,
-            'penalty_shootout': penalty_shootout_needed.astype(int),
-            'penalty_goals_team1_pred': penalty_goals_team1_pred,
-            'penalty_goals_team2_pred': penalty_goals_team2_pred
-        })
-
-        save_predictions_to_new_db(predictions, new_db_path)
-    else:
-        print("Error: Columns have mismatched lengths and cannot be combined into a DataFrame.")
+    save_predictions_to_new_db(predictions, new_db_path)
 
 
 # Przykładowa lista turniejów do trenowania modelu
 tournaments = [
+    {"name": "WC 2006", "stats_db": "WC_2006_stats.db", "matches_db": "worldcup2006_matches_info.db"},
+    {"name": "WC 2010", "stats_db": "WC_2010_stats.db", "matches_db": "worldcup2010_matches_info.db"},
+    {"name": "WC 2014", "stats_db": "WC_2014_stats.db", "matches_db": "worldcup2014_matches_info.db"},
     {"name": "WC 2018", "stats_db": "WC_2018_stats.db", "matches_db": "worldcup2018_matches_info.db"},
     {"name": "WC 2022", "stats_db": "WC_2022_stats.db", "matches_db": "worldcup2022_matches_info.db"},
+    {"name": "euro 2008", "stats_db": "euro_2008_stats.db", "matches_db": "euro2008_matches_info.db"},
+    {"name": "euro 2012", "stats_db": "euro_2012_stats.db", "matches_db": "euro2012_matches_info.db"},
+    {"name": "euro 2016", "stats_db": "euro_2016_stats.db", "matches_db": "euro2016_matches_info.db"},
+    {"name": "euro 2020", "stats_db": "euro_2020_stats.db", "matches_db": "euro2020_matches_info.db"},
 ]
 
 new_db_path = 'predictions_euro2024_matches_info.db'
-run_rf_predictions_for_euro_2024(tournaments, new_db_path)
+run_weighted_rf_predictions_for_euro_2024(tournaments, new_db_path)

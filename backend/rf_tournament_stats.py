@@ -299,6 +299,7 @@ tournaments = [
     {"name": "Euro 2020", "db_path": "euro_2020_stats.db"},
     {"name": "WC 2006", "db_path": "WC_2006_stats.db"},
     {"name": "WC 2010", "db_path": "WC_2010_stats.db"},
+    {"name": "WC 2014", "db_path": "WC_2014_stats.db"},
     {"name": "WC 2018", "db_path": "WC_2018_stats.db"},
     {"name": "WC 2022", "db_path": "WC_2022_stats.db"},
 ]

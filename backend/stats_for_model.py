@@ -160,7 +160,7 @@ def aggregate_team_stats_by_position(team_id, teams, player_stats, market_value,
 
 # Example for processing Euro 2024
 def process_euro_2024():
-    conn = sqlite3.connect('WC_2022_stats.db')
+    conn = sqlite3.connect('WC_2014_stats.db')
     cursor = conn.cursor()
 
     # Create tables for club stats and tournament stats
@@ -202,10 +202,10 @@ def process_euro_2024():
     ''')
 
     # Load data from databases
-    matches_2024 = load_table('worldcup2022_matches_info.db', 'matches')
-    teams_2024 = load_table('world_cup1_teams2022.db', 'teams')
-    player_stats_2024 = load_table('world_cup1_teams2022.db', 'players_stats')
-    market_value_2024 = load_table('world_cup1_teams2022.db', 'market_value_history')
+    matches_2024 = load_table('worldcup2014_matches_info.db', 'matches')
+    teams_2024 = load_table('world_cup1_teams2014.db', 'teams')
+    player_stats_2024 = load_table('world_cup1_teams2014.db', 'players_stats')
+    market_value_2024 = load_table('world_cup1_teams2014.db', 'market_value_history')
 
     for _, match in matches_2024.iterrows():
         team1_id = match['team1_id']
