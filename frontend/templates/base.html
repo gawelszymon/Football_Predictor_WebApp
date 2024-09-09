@@ -71,6 +71,10 @@
                                 style="{% if request.endpoint == 'forum' %}color: #333399;{% else %}color: black;{% endif %}">Fan Forum</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'validation' %}active{% endif %}" href="{{ url_for('validation') }}"
+                                style="{% if request.endpoint == 'validation' %}color: #333399;{% else %}color: black;{% endif %}">Model Validation</a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}"
                                 style="{% if request.endpoint == 'about' %}color: #333399;{% else %}color: black;{% endif %}">About</a>
                             </li>

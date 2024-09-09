@@ -56,6 +56,10 @@ def matches():
 def bracket():
     return render_template('bracket.html')
 
+@app.route('/validation')
+def validation():
+    return render_template('validation.html')
+
 @app.route('/about')
 def about():
     return render_template('about.html')
