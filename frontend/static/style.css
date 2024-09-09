@@ -103,6 +103,10 @@ body {
     border-radius: 10px;
 }
 
+#result {
+    margin-top: 20px;
+}
+
 #entries {
     margin-bottom: 20px;
 }
