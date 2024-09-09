@@ -140,61 +140,57 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('true_result').textContent = 'No real result available';
         }
     });
+});
 
-    // Load existing entries
-    function loadEntries() {
-        fetch('/get_entries')
-            .then(response => response.json())
-            .then(data => {
-                const entriesContainer = document.getElementById('entries');
-                entriesContainer.innerHTML = '';
+function loadEntries() {
+    fetch('/get_entries')
+        .then(response => response.json())
+        .then(data => {
+            const entriesContainer = document.getElementById('entries');
+            entriesContainer.innerHTML = '';  //not to publish multiple content, remove the published content
 
-                data.forEach(entry => {
-                    const entryDiv = document.createElement('div');
-                    entryDiv.classList.add('entry');
+            data.forEach(entry => {
+                const entryDiv = document.createElement('div');
+                entryDiv.classList.add('entry');
 
-                    const usernameDiv = document.createElement('div');
-                    usernameDiv.classList.add('username');
-                    usernameDiv.textContent = entry.username;
+                const usernameDiv = document.createElement('div');
+                usernameDiv.classList.add('username');
+                usernameDiv.textContent = entry.username;
 
-                    const timestampDiv = document.createElement('div');
-                    timestampDiv.classList.add('timestamp');
-                    timestampDiv.textContent = entry.timestamp;
+                const timestampDiv = document.createElement('div');
+                timestampDiv.classList.add('timestamp');
+                timestampDiv.textContent = entry.timestamp;
 
-                    const contentDiv = document.createElement('div');
-                    contentDiv.textContent = entry.content;
+                const contentDiv = document.createElement('div');
+                contentDiv.textContent = entry.content;
 
-                    entryDiv.appendChild(usernameDiv);
-                    entryDiv.appendChild(timestampDiv);
-                    entryDiv.appendChild(contentDiv);
+                entryDiv.appendChild(usernameDiv);
+                entryDiv.appendChild(timestampDiv);
+                entryDiv.appendChild(contentDiv);
 
-                    entriesContainer.appendChild(entryDiv);
-                });
-            })
-            .catch(error => {
-                console.error('Error loading entries:', error);
+                entriesContainer.appendChild(entryDiv);
             });
+        });
+}
+
+function addEntry() {
+    console.log("load test");
+
+    const username = document.getElementById('username').value;
+    const content = document.getElementById('content').value;
+
+    if (!username || !content) {
+        alert("Please fill in both username and content fields!");
+        return;
     }
 
-    // Add a new entry
-    document.getElementById('opinionForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        const username = document.getElementById('username').value;
-        const content = document.getElementById('content').value;
-
-        if (!username || !content) {
-            alert("Please fill in both username and content fields!");
-            return;
-        }
-
-        fetch('/add_entry', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, content })
-        })
+    fetch('/add_entry', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, content })
+    })
         .then(response => {
             if (!response.ok) {
                 return response.text().then(text => { throw new Error(text) });
@@ -202,14 +198,16 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.json();
         })
         .then(data => {
-            loadEntries();  // Reload entries after adding
-            document.getElementById('username').value = '';  // Clear form
+            console.log("Data received:", data);
+            loadEntries();
+            document.getElementById('username').value = '';
             document.getElementById('content').value = '';
         })
         .catch(error => {
-            console.error('Error adding entry:', error);
+            console.error('Error:', error.message);
         });
-    });
 
-    loadEntries();  // Load entries on page load
-});
+    console.log(JSON.stringify({ username, content }));
+}
+
+document.addEventListener('DOMContentLoaded', loadEntries);
