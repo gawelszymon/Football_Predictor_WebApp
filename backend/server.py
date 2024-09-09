@@ -37,9 +37,6 @@ with app.app_context():
 #     }
 # ]
 
-with open('euro_results.json', 'r') as f:
-    data = json.load(f)
-
 @app.route('/')
 def index():
     return render_template('index.html')
