@@ -1,64 +1,32 @@
 import requests
-<<<<<<< HEAD
 from bs4 import BeautifulSoup
 import unidecode
 import sqlite3
-import json
-import pandas as pd
-=======
-import json
-import pandas as pd
-def get_countries_rating():
-    url = "https://www.sofascore.com/api/v1/rankings/type/2"
-    response = requests.get(url)
-    rating_dict = {}
-    if response.status_code == 200:
-        data = response.json()
-        for ranking in data['rankings']:
-            team_name = ranking['team']['name']
-            points = ranking['points']
-            rating_dict[team_name] = points
->>>>>>> c30e63306997e95f998783c95fab5c53cd74eab2
 
-        return rating_dict
-    else:
-        print(f"Nie udało się pobrać danych, status code: {response.status_code}")
-        return None
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+}
 
-# Tutaj bocik scrappuje info ktore pozniej bedziemy dodawac do bazy danych
-def get_teams_info():
-    url = "https://www.sofascore.com/api/v1/unique-tournament/1/season/56953/standings/total"
-    response = requests.get(url)
-    data = response.json()
-    standings = data.get('standings', [])
-    all_groups = []
+url = "https://www.transfermarkt.pl/weltmeisterschaft-2006/gesamtspielplan/pokalwettbewerb/WM06/saison_id/2005"
 
-    ratings = get_countries_rating()
+response = requests.get(url, headers=headers)
 
-    for group in standings:
-        group_name = group['tournament']['name']
-        for row in group.get('rows', []):
-            team_name = row['team']['name']
-            points = row['points']
-            rating = ratings.get(team_name, 'Brak danych')
-            all_groups.append({
-                'group': group_name,
-                'team': team_name,
-                'points': points,
-                'rating': rating
-            })
-    return all_groups
+conn = sqlite3.connect('worldcup2006_matches_info.db')
+cursor = conn.cursor()
 
-def display_standings():
-    teams_info = get_teams_info()
-    if teams_info:
-        df = pd.DataFrame(teams_info)
-        df_sorted = df.sort_values(by=['group'])
-        print(df_sorted)
-    else:
-        print("Nie udało się pobrać danych o zespołach.")
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS matches (
+        team1_id TEXT,
+        team1_name TEXT,
+        team1_goals INTEGER,
+        team2_id TEXT,
+        team2_name TEXT,
+        team2_goals INTEGER,
+        team1_penalties INTEGER,
+        team2_penalties INTEGER
+    )
+''')
 
-<<<<<<< HEAD
 def match_exists(team1_name, team2_name, team1_goals, team2_goals):
     cursor.execute('''
         SELECT 1 FROM matches WHERE team1_name = ? AND team2_name = ? 
@@ -161,58 +129,3 @@ if response.status_code == 200:
     conn.close()
 else:
     print("Failed to retrieve the page")
-
-
-
-def get_countries_rating():
-    url = "https://www.sofascore.com/api/v1/rankings/type/2"
-    response = requests.get(url)
-    rating_dict = {}
-    if response.status_code == 200:
-        data = response.json()
-        for ranking in data['rankings']:
-            team_name = ranking['team']['name']
-            points = ranking['points']
-            rating_dict[team_name] = points
-
-        return rating_dict
-    else:
-        print(f"Nie udało się pobrać danych, status code: {response.status_code}")
-        return None
-
-# Tutaj bocik scrappuje info ktore pozniej bedziemy dodawac do bazy danych
-def get_teams_info():
-    url = "https://www.sofascore.com/api/v1/unique-tournament/1/season/56953/standings/total"
-    response = requests.get(url)
-    data = response.json()
-    standings = data.get('standings', [])
-    all_groups = []
-
-    ratings = get_countries_rating()
-
-    for group in standings:
-        group_name = group['tournament']['name']
-        for row in group.get('rows', []):
-            team_name = row['team']['name']
-            points = row['points']
-            rating = ratings.get(team_name, 'Brak danych')
-            all_groups.append({
-                'group': group_name,
-                'team': team_name,
-                'points': points,
-                'rating': rating
-            })
-    return all_groups
-
-def display_standings():
-    teams_info = get_teams_info()
-    if teams_info:
-        df = pd.DataFrame(teams_info)
-        df_sorted = df.sort_values(by=['group'])
-        print(df_sorted)
-    else:
-        print("Nie udało się pobrać danych o zespołach.")
-
-=======
->>>>>>> c30e63306997e95f998783c95fab5c53cd74eab2
-display_standings()
