@@ -1,11 +1,9 @@
 import requests
-<<<<<<< HEAD
 from bs4 import BeautifulSoup
 import unidecode
 import sqlite3
 import json
 import pandas as pd
-=======
 import json
 import pandas as pd
 def get_countries_rating():
@@ -18,8 +16,6 @@ def get_countries_rating():
             team_name = ranking['team']['name']
             points = ranking['points']
             rating_dict[team_name] = points
->>>>>>> c30e63306997e95f998783c95fab5c53cd74eab2
-
         return rating_dict
     else:
         print(f"Nie udało się pobrać danych, status code: {response.status_code}")
@@ -58,7 +54,6 @@ def display_standings():
     else:
         print("Nie udało się pobrać danych o zespołach.")
 
-<<<<<<< HEAD
 def match_exists(team1_name, team2_name, team1_goals, team2_goals):
     cursor.execute('''
         SELECT 1 FROM matches WHERE team1_name = ? AND team2_name = ? 
@@ -213,6 +208,4 @@ def display_standings():
     else:
         print("Nie udało się pobrać danych o zespołach.")
 
-=======
->>>>>>> c30e63306997e95f998783c95fab5c53cd74eab2
 display_standings()
