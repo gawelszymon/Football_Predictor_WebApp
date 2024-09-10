@@ -34,5 +34,5 @@ To get started with the project, follow these steps:
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/gawelszymon/www_project.git
-   cd www_project
+   git clone https://github.com/gawelszymon/Football_Predictor_WebApp.git
+   cd Football_Predictor_WebApp.git
