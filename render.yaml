@@ -4,4 +4,4 @@ services:
     env: python
     region: oregon
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "python backend/server.py"
+    startCommand: "gunicorn backend.server:app"
