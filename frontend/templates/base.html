@@ -18,12 +18,15 @@
 
         {% block styles %}
         <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='../static/style_swipper.css') }}">
         <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='web_badge.ico') }}">
         {% endblock %}
         
 
         {%- block scripts %}
         <script src="{{ url_for('static',filename='../static/script.js') }}"></script>
+
+        <script src="{{ url_for('static', filename='slideshow.js') }}"></script>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
@@ -70,9 +73,24 @@
                                 <a class="nav-link {% if request.endpoint == 'forum' %}active{% endif %}" href="{{ url_for('forum') }}"
                                 style="{% if request.endpoint == 'forum' %}color: #333399;{% else %}color: black;{% endif %}">Fan Forum</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.endpoint == 'validation' %}active{% endif %}" href="{{ url_for('validation') }}"
-                                style="{% if request.endpoint == 'validation' %}color: #333399;{% else %}color: black;{% endif %}">Model Validation</a>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle {% if request.endpoint == 'rmse_plots' or request.endpoint == 'atack_plots' 
+                                or request.endpoint == 'miedfield_plots' or request.endpoint == 'defense_plots' or request.endpoint == 'goalkeeper_plots'
+                                or request.endpoint == 'repka_goals_plots' or request.endpoint == 'repka_prediction_plots'%}active{% endif %}" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                style="{% if request.endpoint == 'rmse_plots' or request.endpoint == 'atack_plots' 
+                                or request.endpoint == 'miedfield_plots' or request.endpoint == 'defense_plots' or request.endpoint == 'goalkeeper_plots'
+                                or request.endpoint == 'repka_goals_plots' or request.endpoint == 'repka_prediction_plots' %}color: #333399;{% else %}color: black;{% endif %}">
+                                    Model Validation
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                    <li><a class="dropdown-item {% if request.endpoint == 'rmse_plots' %}active{% endif %}" href="{{url_for('rmse_plots')}}">RMSE Plots</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'atack_plots' %}active{% endif %}" href="{{url_for('atack_plots')}}">Attack Plots</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'miedfield_plots' %}active{% endif %}" href="{{url_for('miedfield_plots')}}">Miedfield Plots</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'defense_plots' %}active{% endif %}" href="{{url_for('defense_plots')}}">Defense Plots</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'goalkeeper_plots' %}active{% endif %}" href="{{url_for('goalkeeper_plots')}}">Goalkeeper Plots</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'repka_goals_plots' %}active{% endif %}" href="{{url_for('repka_goals_plots')}}">Team Goals Plots</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'repka_prediction_plots' %}active{% endif %}" href="{{url_for('repka_prediction_plots')}}">Team Prediction Plots</a></li>
+                                </ul>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}"

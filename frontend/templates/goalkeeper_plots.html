@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="slideshow-container">
+        <div class="swiper">
+            <!-- Additional required wrapper -->
+            <div class="swiper-wrapper" id="images-container">
+                <!-- Slides -->
+                <!-- <div class="swiper-slide"><img src="../static/1_matchday_banner_on_page_official.png"></div> -->
+            </div>
+            <!-- If we need pagination -->
+            <div class="swiper-pagination"></div>
+
+            <!-- If we need navigation buttons -->
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-button-next"></div>
+
+        </div>
+    </div>
+
+    <script>
+        fetch('http://127.0.0.1:5000/goalkeeper_comparison_plots')
+            .then(response => response.json())
+            .then(files => {
+                const container = document.getElementById('images-container');
+                files.forEach(file => {
+                    const slide = document.createElement('div');
+                    slide.className = 'swiper-slide';
+                    slide.innerHTML = `<img src="http://127.0.0.1:5000/goalkeeper_comparison_plots/${file}" alt="${file}">`;
+                    container.appendChild(slide);
+                });
+            })
+            .catch(error => console.error('Error fetching images:', error));
+    </script>
+
+    <script>
+        const swiper = new Swiper('.swiper', {
+          autoplay: {
+            delay: 8000,
+            disableOnInteraction: false,
+            },
+
+        // Optional parameters
+          loop: true,
+
+          // If we need pagination
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+          },
+
+          // Navigation arrows
+          navigation: {
+            prevEl: '.swiper-button-prev',
+            nextEl: '.swiper-button-next',
+          },
+
+        });
+
+        console.log('Width: ' + window.innerWidth + 'px');
+    </script>
+{% endblock %}

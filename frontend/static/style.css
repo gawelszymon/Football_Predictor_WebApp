@@ -44,6 +44,14 @@ body {
     margin: 0 35px;
 }
 
+.dropdown-item.active {
+    background-color: #333399;
+}
+
+.dropdown-item:hover {
+    background-color: whitesmoke;
+    color: black;
+}
 .row {
     margin-left: 100px;
 }
@@ -155,6 +163,24 @@ button {
 
 button:hover {
     opacity: 0.85;
+}
+
+/*pokaz slajdów*/
+
+.slideshow-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.swiper {
+    width: 60%;
+    height: fit-content;
+    border-radius: 5px;
+}
+
+.swiper-slide img {
+    width: 100%;
 }
 
 /* #entries {

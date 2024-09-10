@@ -1,4 +1,5 @@
-from flask import Flask, jsonify, render_template, request
+import os
+from flask import Flask, jsonify, render_template, request, send_from_directory
 from flask_cors import CORS
 from euro_groups import get_teams_info
 from frontend_last_matches import get_team_matches
@@ -23,6 +24,15 @@ class Entry(db.Model):
     
 with app.app_context():
     db.create_all()
+    
+RMSE_DIR = 'rmse_comparison_plots'
+ATTACK_DIR = 'attack_plots'
+MIEDFIELD_DIR = 'miedfield_plots'
+DEFENSE_DIR = 'defense_plots'
+GOALKEEPER_DIR = 'goalkeeper_plots'
+REPKA_GOALS_DIR = 'repka_goals_plots'
+REPKA_PRDICTION_DIR = 'repka_prediction_plots'
+
 
 # entries = [     #TODO replace with database
 #     {
@@ -53,9 +63,33 @@ def matches():
 def bracket():
     return render_template('bracket.html')
 
-@app.route('/validation')
-def validation():
-    return render_template('validation.html')
+@app.route('/rmse_plots')
+def rmse_plots():
+    return render_template('rmse_plots.html')
+
+@app.route('/atack_plots')
+def atack_plots():
+    return render_template('atack_plots.html')
+
+@app.route('/miedfield_plots')
+def miedfield_plots():
+    return render_template('miedfield_plots.html')
+
+@app.route('/defense_plots')
+def defense_plots():
+    return render_template('defense_plots.html')
+
+@app.route('/goalkeeper_plots')
+def goalkeeper_plots():
+    return render_template('goalkeeper_plots.html')
+
+@app.route('/repka_goals_plots')
+def repka_goals_plots():
+    return render_template('repka_goals_plots.html')
+
+@app.route('/repka_prediction_plots')
+def repka_prediction_plots():
+    return render_template('repka_prediction_plots.html')
 
 @app.route('/about')
 def about():
@@ -136,6 +170,69 @@ def get_entries():
     } for entry in entries]
     
     return jsonify(entries_list)
+
+@app.route('/rmse_comparison_plots')
+def list_images_rmse():
+    files = [f for f in os.listdir(RMSE_DIR) if f.endswith('.png')]
+    return jsonify(files)
+
+@app.route('/rmse_comparison_plots/<rmse>')
+def serve_image(rmse):
+    return send_from_directory(RMSE_DIR, rmse)
+
+@app.route('/attack_comparison_plots')
+def list_images_attack():
+    files = [f for f in os.listdir(ATTACK_DIR) if f.endswith('.png')]
+    return jsonify(files)
+
+@app.route('/attack_comparison_plots/<attack>')
+def serve_image1(attack):
+    return send_from_directory(ATTACK_DIR, attack)
+
+@app.route('/miedfield_comparison_plots')
+def list_images_miedfield():
+    files = [f for f in os.listdir(MIEDFIELD_DIR) if f.endswith('.png')]
+    return jsonify(files)
+
+@app.route('/miedfield_comparison_plots/<miedfield>')
+def serve_image2(miedfield):
+    return send_from_directory(MIEDFIELD_DIR, miedfield)
+
+@app.route('/defense_comparison_plots')
+def list_images_defense():
+    files = [f for f in os.listdir(DEFENSE_DIR) if f.endswith('.png')]
+    return jsonify(files)
+
+@app.route('/defense_comparison_plots/<defense>')
+def serve_image3(defense):
+    return send_from_directory(DEFENSE_DIR, defense)
+
+@app.route('/goalkeeper_comparison_plots')
+def list_images_goalkeeper():
+    files = [f for f in os.listdir(GOALKEEPER_DIR) if f.endswith('.png')]
+    return jsonify(files)
+
+@app.route('/goalkeeper_comparison_plots/<goalkeeper>')
+def serve_image4(goalkeeper):
+    return send_from_directory(GOALKEEPER_DIR, goalkeeper)
+
+@app.route('/repka_goals_comparison_plots')
+def list_images__repka_goals():
+    files = [f for f in os.listdir(REPKA_GOALS_DIR) if f.endswith('.png')]
+    return jsonify(files)
+
+@app.route('/repka_goals_comparison_plots/<repka_goals>')
+def serve_image5(repka_goals):
+    return send_from_directory(REPKA_GOALS_DIR, repka_goals)
+
+@app.route('/repka_prediction_comparison_plots')
+def list_images__repka_prediction():
+    files = [f for f in os.listdir(REPKA_PRDICTION_DIR) if f.endswith('.png')]
+    return jsonify(files)
+
+@app.route('/repka_prediction_comparison_plots/<repka_prediction>')
+def serve_image6(repka_prediction):
+    return send_from_directory(REPKA_PRDICTION_DIR, repka_prediction)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5000, debug=True)
