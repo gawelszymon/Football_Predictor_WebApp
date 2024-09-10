@@ -1,6 +1,8 @@
 import os
 from flask import Flask, jsonify, render_template, request, send_from_directory
 from flask_cors import CORS
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from euro_groups import get_teams_info
 from frontend_last_matches import get_team_matches
 import json
