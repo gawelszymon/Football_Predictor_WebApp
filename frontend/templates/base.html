@@ -76,10 +76,10 @@
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle {% if request.endpoint == 'rmse_plots' or request.endpoint == 'atack_plots' 
                                 or request.endpoint == 'miedfield_plots' or request.endpoint == 'defense_plots' or request.endpoint == 'goalkeeper_plots'
-                                or request.endpoint == 'repka_goals_plots' or request.endpoint == 'repka_prediction_plots'%}active{% endif %}" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                or request.endpoint == 'repka_goals_plots' or request.endpoint == 'repka_prediction_plots' or request.endpoint == 'results_comparison'%}active{% endif %}" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"
                                 style="{% if request.endpoint == 'rmse_plots' or request.endpoint == 'atack_plots' 
                                 or request.endpoint == 'miedfield_plots' or request.endpoint == 'defense_plots' or request.endpoint == 'goalkeeper_plots'
-                                or request.endpoint == 'repka_goals_plots' or request.endpoint == 'repka_prediction_plots' %}color: #333399;{% else %}color: black;{% endif %}">
+                                or request.endpoint == 'repka_goals_plots' or request.endpoint == 'repka_prediction_plots' or request.endpoint == 'results_comparison' %}color: #333399;{% else %}color: black;{% endif %}">
                                     Model Validation
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
@@ -90,6 +90,7 @@
                                     <li><a class="dropdown-item {% if request.endpoint == 'goalkeeper_plots' %}active{% endif %}" href="{{url_for('goalkeeper_plots')}}">Goalkeeper Plots</a></li>
                                     <li><a class="dropdown-item {% if request.endpoint == 'repka_goals_plots' %}active{% endif %}" href="{{url_for('repka_goals_plots')}}">Team Goals Plots</a></li>
                                     <li><a class="dropdown-item {% if request.endpoint == 'repka_prediction_plots' %}active{% endif %}" href="{{url_for('repka_prediction_plots')}}">Team Prediction Plots</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'results_comparison' %}active{% endif %}" href="{{url_for('results_comparison')}}">Results Comparison</a></li>
                                 </ul>
                             </li>
                             <li class="nav-item">

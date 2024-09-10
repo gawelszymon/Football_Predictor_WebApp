@@ -93,6 +93,10 @@ def repka_goals_plots():
 def repka_prediction_plots():
     return render_template('repka_prediction_plots.html')
 
+@app.route('/results_comparison')
+def results_comparison():
+    return render_template('results_comparison.html')
+
 @app.route('/about')
 def about():
     return render_template('about.html')
@@ -104,7 +108,7 @@ def euro_groups():
 
 @app.route('/last_matches', methods=['GET'])
 def last_matches():
-    team_id = request.args.get('team_id', default=4703, type=int)  # Default to Poland if no team_id is provided
+    team_id = request.args.get('team_id', default=4703, type=int)
     data = get_team_matches(team_id)
     return jsonify(data)
 
