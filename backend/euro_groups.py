@@ -4,27 +4,44 @@ import unidecode
 import sqlite3
 import pandas as pd
 
-# Funkcja pobierająca rankingi krajów
 def get_countries_rating():
     url = "https://www.sofascore.com/api/v1/rankings/type/2"
     response = requests.get(url)
-    rating_dict = {}
-    if response.status_code == 200:
-        data = response.json()
-        for ranking in data['rankings']:
-            team_name = ranking['team']['name']
-            points = ranking['points']
-            rating_dict[team_name] = points
-        return rating_dict
-    else:
+
+    if response.status_code != 200:
         print(f"Nie udało się pobrać danych, status code: {response.status_code}")
         return None
+
+    try:
+        data = response.json()  # Sprawdzenie czy odpowiedź to JSON
+    except ValueError:
+        print("Odpowiedź serwera nie jest w formacie JSON")
+        return None
+
+    rating_dict = {}
+    for ranking in data.get('rankings', []):
+        team_name = ranking['team']['name']
+        points = ranking['points']
+        rating_dict[team_name] = points
+    return rating_dict
+
 
 # Funkcja pobierająca informacje o zespołach z Sofascore
 def get_teams_info():
     url = "https://www.sofascore.com/api/v1/unique-tournament/1/season/56953/standings/total"
     response = requests.get(url)
-    data = response.json()
+
+    # Sprawdzenie, czy odpowiedź jest poprawna
+    if response.status_code != 200:
+        print(f"Failed to fetch data, status code: {response.status_code}")
+        return None
+
+    try:
+        data = response.json()  # Próba sparsowania JSON
+    except ValueError:
+        print("Odpowiedź serwera nie jest w formacie JSON")
+        return None
+
     standings = data.get('standings', [])
     all_groups = []
 
