@@ -35,4 +35,4 @@ To get started with the project, follow these steps:
 
    ```bash
    git clone https://github.com/gawelszymon/Football_Predictor_WebApp.git
-   cd Football_Predictor_WebApp.git
+   cd Football_Predictor_WebApp
