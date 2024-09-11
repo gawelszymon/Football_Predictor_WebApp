@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1 style="text-align: center;">Last Matches</h1>
+    <div style="text-align: center;">
+        <h2 class="team-select-header">Select the team whose match results you want to check.</h2>
+        <select id="team-select" class="team-select">
+            <option value="4690">Albania</option>
+            <option value="4718">Austria</option>
+            <option value="4717">Belgium</option>
+            <option value="4714">Czech Republic</option>
+            <option value="4476">Denmark</option>
+            <option value="4713">England</option>
+            <option value="4481">France</option> 
+            <option value="4763">Georgia</option>
+            <option value="4711">Germany</option>
+            <option value="4709">Hungary</option>
+            <option value="4707">Italy</option>
+            <option value="4705">Netherlands</option>
+            <option value="4703">Poland</option>
+            <option value="4704">Portugal</option>
+            <option value="4477">Romania</option>
+            <option value="6355">Serbia</option>
+            <option value="4695">Scotland</option>
+            <option value="4698">Spain</option>
+            <option value="4697">Slovakia</option>
+            <option value="4484">Slovenia</option>
+            <option value="4699">Switzerland</option>
+            <option value="4700">Turkey</option>
+            <option value="4701">Ukraine</option>
+            
+        </select>
+    </div>
+    <div id="matches-container" class="matches"></div>
+    <script src="{{ url_for('static', filename='matches.js') }}"></script>
+{% endblock %}

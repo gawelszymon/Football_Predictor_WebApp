@@ -1,0 +1,170 @@
+{% block doc -%}
+<!DOCTYPE html>
+<html lang="pl">
+    {%- block html %}
+    <head>
+        {%- block head %}
+
+        {%- block metas %}
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        {%- endblock metas %}
+
+        <title>{% block title %}{{ title|default("Football Match Predictor. EURO 2024 EDITION", true) }}{% endblock title %}</title>
+
+        
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+            integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+        {% block styles %}
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='../static/style_swipper.css') }}">
+        <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='web_badge.ico') }}">
+        {% endblock %}
+        
+
+        {%- block scripts %}
+        <script src="{{ url_for('static',filename='../static/script.js') }}"></script>
+
+        <script src="{{ url_for('static', filename='slideshow.js') }}"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+            crossorigin="anonymous"></script>
+        
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+        {%- endblock scripts %}
+
+        
+        {%- endblock head %}
+    </head>
+
+    <body{% block body_attribs %}{% endblock body_attribs %}>
+
+        {% block navbar %}
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">EURO Football App</a>
+                <div class="row"></div>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor02"
+                        aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarColor02">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" aria-current="page" href="{{ url_for('index') }}"
+                                style="{% if request.endpoint == 'index' %}color: #333399;{% else %}color: black;{% endif %}">Predictor</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'groups' %}active{% endif %}" href="{{url_for('groups')}}"
+                                style="{% if request.endpoint == 'groups' %}color: #333399;{% else %}color: black;{% endif %}">Groups</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'matches' %}active{% endif %}" href="{{ url_for('matches') }}"
+                                style="{% if request.endpoint == 'matches' %}color: #333399;{% else %}color: black;{% endif %}">Matches</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'bracket' %}active{% endif %}" href="{{ url_for('bracket') }}"
+                                style="{% if request.endpoint == 'bracket' %}color: #333399;{% else %}color: black;{% endif %}">Tournament bracket</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'forum' %}active{% endif %}" href="{{ url_for('forum') }}"
+                                style="{% if request.endpoint == 'forum' %}color: #333399;{% else %}color: black;{% endif %}">Fan Forum</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle {% if request.endpoint == 'rmse_plots' or request.endpoint == 'atack_plots' 
+                                or request.endpoint == 'miedfield_plots' or request.endpoint == 'defense_plots' or request.endpoint == 'goalkeeper_plots'
+                                or request.endpoint == 'repka_goals_plots' or request.endpoint == 'repka_prediction_plots' or request.endpoint == 'results_comparison'%}active{% endif %}" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                style="{% if request.endpoint == 'rmse_plots' or request.endpoint == 'atack_plots' 
+                                or request.endpoint == 'miedfield_plots' or request.endpoint == 'defense_plots' or request.endpoint == 'goalkeeper_plots'
+                                or request.endpoint == 'repka_goals_plots' or request.endpoint == 'repka_prediction_plots' or request.endpoint == 'results_comparison' %}color: #333399;{% else %}color: black;{% endif %}">
+                                    Model Validation
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                    <li><a class="dropdown-item {% if request.endpoint == 'rmse_plots' %}active{% endif %}" href="{{url_for('rmse_plots')}}">RMSE Plots</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'atack_plots' %}active{% endif %}" href="{{url_for('atack_plots')}}">Attack Plots</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'miedfield_plots' %}active{% endif %}" href="{{url_for('miedfield_plots')}}">Miedfield Plots</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'defense_plots' %}active{% endif %}" href="{{url_for('defense_plots')}}">Defense Plots</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'goalkeeper_plots' %}active{% endif %}" href="{{url_for('goalkeeper_plots')}}">Goalkeeper Plots</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'repka_goals_plots' %}active{% endif %}" href="{{url_for('repka_goals_plots')}}">Team Goals Plots</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'repka_prediction_plots' %}active{% endif %}" href="{{url_for('repka_prediction_plots')}}">Team Prediction Plots</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'results_comparison' %}active{% endif %}" href="{{url_for('results_comparison')}}">Results Comparison</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}"
+                                style="{% if request.endpoint == 'about' %}color: #333399;{% else %}color: black;{% endif %}">About</a>
+                            </li>
+                        </ul>
+                        <!-- <form class="d-flex">
+                                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                                <button class="btn btn-outline-light" type="submit">Search</button>
+                            </form> -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1">
+                <img class="vi_img_class" id="video" src="../static/vi_img.png" alt="img">
+                <img class="ue_img_class" id="uefa" src="../static/ue_img.png" alt="img">
+            </div>
+        </nav>
+        {%- endblock navbar %}
+
+        <!-- <div id="cointainer-body" class="container">
+            <h1>Football Match Predictor. EURO 2024 EDITION</h1>
+            <form id="predictionForm">
+                <label for="team1">Team 1:</label>
+                <select id="team1" name="team1" required>
+                </select>
+
+                <label for="team2">Team 2:</label>
+                <select id="team2" name="team2" required>
+                </select>
+
+                <button type="submit">Predict results</button>
+            </form>
+            <div id="result" class="result"></div>
+
+            <div class="groups" id="groups-container">
+                <!-- Groups will be dynamically populated here -->
+           <!-- </div>
+        </div> -->
+
+        <div class="p-4 rounded">
+            <div class="row">
+
+                <div id="firstSection" class="col-md-1 d-flex align-items-center">
+                    <img id="profilPhoto" src="../static/badge_shrink.png" alt="badge_shrink">
+                    <span id="less100">UEFA EURO 2024</span>
+                    <span id="less">
+                        <p>↪︎ Germany, Europa 2024</p>
+                        <p>Final:  Olimpia Stadion  14.07</p>
+                        <p>RESPECT AND EQUALITY</p>
+                    </span>
+                </div>
+
+
+                <div id="secondSection" class="col-md-6";>
+                    <p id="name"> Unity in the team, group in unity</p>
+                    <p id="anniversary">EMOTIONS, RIVALRY, HONESTY</p>
+                </div>
+
+                <div id="thirdSection" class="col-md-5";>
+                    <p id="localization">↪︎ Germany, Europa 2024</p>
+                    <p id="mail">Final:  Olimpia Stadion  14.07</p>
+                    <p id="tel">RESPECT AND EQUALITY</p>
+                </div>
+
+            </div>
+        </div>
+
+          {% block content -%}
+          {%- endblock content %}
+
+
+    </body>
+    {%- endblock html %}
+</html>
+{% endblock doc -%}

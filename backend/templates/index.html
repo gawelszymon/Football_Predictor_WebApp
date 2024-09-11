@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+    <div id="container-body" class="container">
+        <img src="{{ url_for('static', filename='flags/logo.png') }}" alt="Logo" class="logo">
+        <h1 id="h1_predictor">Football Match Predictor. EURO 2024 EDITION</h1>
+        <form id="predictionForm">
+            <label for="team1">Team 1:</label>
+            <select id="team1" name="team1" required>
+            </select>
+
+            <label for="team2">Team 2:</label>
+            <select id="team2" name="team2" required>
+            </select>
+
+            <button type="submit">Predict results</button>
+        </form>
+        
+        <div id="result" style="font-size: 16px; font-weight: bold;"></div>
+        <div id="true_result" style="font-size: 16px; font-weight: bold;"></div>
+
+        <div id="result" class="result"></div>
+        <div id="true_result" class="true_result"></div>
+
+        <div class="groups" id="groups-container">
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<table>
+    <thead>
+        <tr>
+            <th>Predicted Result</th>
+            <th>Real Result</th>
+        </tr>
+    </thead>
+    <tbody id="results-table">
+    </tbody>
+</table>
+
+<script>
+    function fetchTextFile(url) {
+        return fetch(url)
+            .then(response => response.text())
+            .then(text => text.trim().split('\n'));
+    }
+
+    function generateTable(predictedResults, realResults) {
+        const tableBody = document.getElementById('results-table');
+        tableBody.innerHTML = '';
+
+        predictedResults.forEach((predicted, index) => {
+            const real = realResults[index] || '';
+
+            const row = document.createElement('tr');
+            const predictedCell = document.createElement('td');
+            const realCell = document.createElement('td');
+
+            predictedCell.textContent = predicted;
+            realCell.textContent = real;
+
+            row.appendChild(predictedCell);
+            row.appendChild(realCell);
+            tableBody.appendChild(row);
+        });
+    }
+
+    Promise.all([
+        fetchTextFile('/static/predicted_results.txt'),
+        fetchTextFile('/static/real_results.txt')
+    ])
+    .then(([predictedResults, realResults]) => {
+        generateTable(predictedResults, realResults);
+    })
+    .catch(error => console.error('Error fetching the files:', error));
+</script>
+
+{% endblock %}
