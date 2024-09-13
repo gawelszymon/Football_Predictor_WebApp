@@ -39,6 +39,15 @@ The database **euro_2024_stats.db** contains the cumulative statistics of player
 - **Selenium**
 - **Asyncio**
 
+## Introduction
+![ss1](frontend/Web_introduction/ss1.png)
+![ss2](frontend/Web_introduction/ss2.png)
+![ss3](frontend/Web_introduction/ss3.png)
+![ss4](frontend/Web_introduction/ss4.png)
+![ss5](frontend/Web_introduction/ss5.png)
+![ss6](frontend/Web_introduction/ss6.png)
+![ss7](frontend/Web_introduction/ss7.png)
+
 
 ## Installation
 
